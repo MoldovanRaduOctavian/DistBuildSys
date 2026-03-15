@@ -1,0 +1,373 @@
+#include "includes_rework.hpp"
+
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <optional>
+#include <string>
+#include <vector>
+
+#include <boost/process.hpp>
+#include <boost/regex.hpp>
+#include <boost/uuid/detail/sha1.hpp>
+
+
+static bool find_file_includes
+    (
+    std::ifstream &                 input_stream,
+    std::vector<IncludeDirective> & found_includes   
+    )
+{
+    if (!input_stream.is_open()) {
+        return false;
+    }    
+    
+    std::string     input_line{};
+    boost::regex    angle_inc_regex(R"(^\s*#include\s*([<])([^>]+)[>])");
+    boost::regex    quote_inc_regex(R"(^\s*#include\s*(["])([^"]+)["])");
+    boost::smatch   match;
+    
+    found_includes.clear();
+    while (std::getline(input_stream, input_line)) {
+        if (boost::regex_match(input_line, match, angle_inc_regex)) {
+            found_includes.emplace_back(
+                IncludeDirective(
+                    match[2],
+                    IncludeDirective::IncludeType::INCLUDE_TYPE_ANGLE
+                )
+            );
+        }
+        else if (boost::regex_match(input_line, match, quote_inc_regex)) {
+            found_includes.emplace_back(
+                IncludeDirective(
+                    match[2],
+                    IncludeDirective::IncludeType::INCLUDE_TYPE_QUOTE
+                )
+            );
+        }
+    }
+    
+    input_stream.clear();
+    input_stream.seekg(0, std::ios::beg);
+    return true;
+
+}
+
+
+static bool requires_inc_storage
+    (
+    const std::string &     include_filename,
+    const CmdLineIncludeDirs &
+                            system_inc_dirs
+    )
+{
+    bool is_dash_i = std::any_of(
+                system_inc_dirs.dash_i.begin(), 
+                system_inc_dirs.dash_i.end(), 
+                [&include_filename](const std::string & dash_i_include){
+                    return include_filename.starts_with(dash_i_include);
+                });
+
+    if (is_dash_i) {
+        return false;
+    }
+    
+    bool is_dash_isystem = std::any_of(
+                system_inc_dirs.dash_isystem.begin(),
+                system_inc_dirs.dash_isystem.end(),
+                [&include_filename](const std::string & dash_isystem_include) {
+                    return include_filename.starts_with(dash_isystem_include);
+                });
+
+    return is_dash_isystem;
+
+}
+
+
+static bool generate_file_sha1
+    (
+    std::ifstream & input_stream,
+    sha1_type &     file_hash
+    )
+{
+    if (!input_stream.is_open()) {
+        return false;
+    }
+    
+    boost::uuids::detail::sha1  sha1;
+    std::vector<uint8_t>        stream_buff;
+    std::for_each(std::istreambuf_iterator<char>(input_stream),
+                  std::istreambuf_iterator<char>(),
+                  [&stream_buff](const char c) {
+                    stream_buff.emplace_back(c);
+                  });
+    
+    sha1.process_bytes(stream_buff.data(), stream_buff.size());
+    sha1.get_digest(file_hash);
+
+    input_stream.clear();
+    input_stream.seekg(0, std::ios::beg);
+    return true;
+
+}
+
+
+bool CmdLineIncludeDirs::_find_system_includes
+    (
+    const std::string &     compiler
+    )
+{
+    boost::process::ipstream    cc_stream;
+    boost::process::child       cc_proc(
+        boost::process::search_path(compiler)
+        , "-Wp,-v", "-x", 
+        "c++", "/dev/null", "-fsyntax-only",
+        boost::process::std_err > cc_stream
+    );
+
+    boost::regex    inc_dir_regex(R"(^\s*(\/\S+))");
+    boost::smatch   match;
+    std::string     input_line;
+    
+    while (cc_proc.running() 
+            && std::getline(cc_stream, input_line)
+            && !input_line.empty()) {
+
+        if (input_line.find("ignoring") != std::string::npos) {
+            continue;
+        }
+
+        if (boost::regex_match(input_line, match, inc_dir_regex)) {
+            std::string include_path = match[1];
+            if (include_path.starts_with("/usr/")) {
+                std::filesystem::path abs_inc_path = 
+                    std::filesystem::weakly_canonical(include_path);
+                dash_isystem.emplace_back(abs_inc_path);
+            }
+            else {
+                dash_i.emplace_back(include_path);
+            }
+        }
+
+    }
+
+    cc_proc.wait();
+    return true;
+
+}
+
+
+bool SourceFileParser::parse_source_file_includes
+    (
+    const std::string & cpp_abs_path,       /* absolute path of parsed source file      */
+    const std::vector<std::string> &
+                        cmd_line_includes   /* includes specified in the cmd line?!?!   */
+    )
+{
+    std::ifstream cpp_source_stream(cpp_abs_path);
+    if (!cpp_source_stream.is_open()) {
+        return false;
+    }
+    
+    // These are all treated as IncludeDirective angle (#include <...>)
+    for (const std::string & cmd_line_inc_directive : cmd_line_includes) {
+        if (!_process_include_directive(
+                cpp_abs_path, 
+                IncludeDirective(cmd_line_inc_directive, IncludeDirective::IncludeType::INCLUDE_TYPE_ANGLE)
+            )) 
+        {
+            std::cout << "COULD NOT RESOLVE INCLUDE: " 
+                      << cpp_abs_path << " - " << cmd_line_inc_directive
+                      << '\n'; 
+        }
+    }
+
+    std::vector<IncludeDirective> cpp_src_include_directives;
+    if (!find_file_includes(cpp_source_stream, cpp_src_include_directives)) {
+        return false;
+    }
+    
+    for (const IncludeDirective & inc_directive : cpp_src_include_directives) {
+        // Call processing function for each IncludeDirective
+        // Process those recursively
+        if (!_process_include_directive(cpp_abs_path, inc_directive)) {
+            std::cout << "COULD NOT RESOLVE INCLUDE: " 
+                      << cpp_abs_path << " - " << inc_directive.inc_content
+                      << '\n';
+                
+        }
+    }
+    
+    return true;
+
+}   /* SourceFileParser::parse_source_file_includes() */
+
+
+bool SourceFileParser::_process_include_directive
+    (
+    const std::string &         parent_src_abs_path,    /* path of cpp which has the inc */
+    const IncludeDirective &    include_directive       /* #include ... to be processed  */
+    )
+{
+    // Figure out all possible absolute paths for the processed include
+    // Each kind of include gets processed differently
+    // Search the include cache to see if it was processed before
+    // Add it to the include cache if it was not processed at all
+    // If the include file does not exist, then add that include to 
+    // a list in the cache, to not have to process it again
+    // Should this be called recursively?
+    
+    // Try to resolve the path of the current include directive
+    // Compute size in bytes and SHA1 for the file
+    
+    // For each resolved possible header path:
+    // 1) Look if it was processed before (exit if it is the case, it either has info or does not exist)
+    // 2) Search for the file inforamtion in the includes cache
+    // 3) If file does not exist at all, return false and mark it
+    // 4) Add the file to cache
+    // 5) Call this function recursively on the children #include s
+    
+    
+    // Try to resolve the the path of the include
+    // Is there a unique path for each include?
+    if (include_directive.inc_type == IncludeDirective::IncludeType::INCLUDE_TYPE_ANGLE) {
+        // Search for the resolved path of the include in the includes cache
+        const std::string * inc_abs_path_ptr = 
+            _includes_cache.get_include_abs_path(include_directive.inc_content);
+        if (inc_abs_path_ptr != nullptr) {
+            const IncludeInfo * cached_include_info = 
+                        _includes_cache.get_include_info(*inc_abs_path_ptr);
+            if (cached_include_info != nullptr) {
+                _inc_directives[*inc_abs_path_ptr] = *cached_include_info;
+                return true;
+            }
+        }
+    }
+
+    if (include_directive.inc_content.starts_with('/')) {
+        // If it starts with '/', it means that the include is an absolute path
+        // Maybe a function named try_resolve_header ???
+        if (_try_resolve_header(include_directive.inc_content, include_directive)) {
+            return true;
+        }
+    }
+
+    if (include_directive.inc_type == IncludeDirective::IncludeType::INCLUDE_TYPE_QUOTE) {
+        // See if parent_cpp_abs_path.directory + include_directive is a valid file
+        // See if a directory from -Iquote ... + include directive is a valid file
+        std::string header_absolute_path =
+            std::filesystem::path(
+                std::filesystem::path(parent_src_abs_path).parent_path() / include_directive.inc_content
+            ).string();
+        if (_try_resolve_header(header_absolute_path, include_directive)) {
+            return true;
+        }
+
+        for (const std::string & dash_iquote_dir : _system_include_dirs.dash_iquote) {
+            // See if dash_iquote_dir + include_directive is a valid file
+            header_absolute_path =
+                std::filesystem::path(
+                    std::filesystem::path(dash_iquote_dir) / include_directive.inc_content
+                ).string();
+            if (_try_resolve_header(header_absolute_path, include_directive)) {
+                return true;
+            }
+        }
+
+    }
+
+    for (const std::string & dash_i_dir : _system_include_dirs.dash_i) {
+        // See if dash_i_dir + include_directive is a valid file
+        std::string header_absolute_path =
+            std::filesystem::path(
+                std::filesystem::path(dash_i_dir) / include_directive.inc_content
+            ).string();
+        if (_try_resolve_header(header_absolute_path, include_directive)) {
+            return true;
+        }
+    }    
+
+    for (const std::string & dash_isystem_dir : _system_include_dirs.dash_isystem) {
+        // See if dash_isystem + include_directive is a valid file
+        std::string header_absolute_path =
+            std::filesystem::path(
+                std::filesystem::path(dash_isystem_dir) / include_directive.inc_content
+            ).string();
+        if (_try_resolve_header(header_absolute_path, include_directive)) {
+            return true;
+        }
+
+    }
+    
+    return false;
+
+}   /* SourceFileParser::_process_include_directive() */
+
+
+bool SourceFileParser::_try_resolve_header
+    (
+    const std::string &         header_abs_path,    /* potential header abs path to check */
+    const IncludeDirective &    header_inc_directive
+                                                    /* resolved header include directive  */
+    )
+{
+    if (_includes_cache.is_src_nonexistent(header_abs_path)) {
+        return false;
+    }
+
+    if (_inc_directives.contains(header_abs_path)) {
+        return true;
+    }
+
+    const IncludeInfo * include_info_ptr = 
+        _includes_cache.get_include_info(header_inc_directive.inc_content);
+    if (include_info_ptr == nullptr) {
+        
+        std::ifstream header_file_stream(header_abs_path);
+        if (!header_file_stream.is_open()) {
+            _includes_cache.mark_src_nonexistent(header_abs_path);
+            return false;
+        }
+
+        sha1_type header_file_sha1 = {0};
+        generate_file_sha1(header_file_stream, header_file_sha1);
+        uint64_t header_file_sz_bytes = std::filesystem::file_size(header_abs_path);
+
+        std::vector<IncludeDirective> child_include_directives;
+        find_file_includes(header_file_stream, child_include_directives);
+
+        auto header_include_info = IncludeInfo(
+            header_abs_path,
+            child_include_directives,
+            header_file_sz_bytes,
+            std::string(
+                reinterpret_cast<const char *>(header_file_sha1),
+                sizeof(header_file_sha1)
+            )
+        );
+        
+        bool should_cache = requires_inc_storage(header_abs_path, _system_include_dirs);
+        if (should_cache) {
+            _includes_cache.add_include_entry(
+                header_inc_directive.inc_content, 
+                header_abs_path, 
+                header_include_info);
+        }
+         
+        _inc_directives[header_abs_path] = std::move(header_include_info);        
+
+        for(const IncludeDirective & child_inc_directive : child_include_directives) {
+            _process_include_directive(header_abs_path, child_inc_directive);
+        }    
+
+    }
+    else {
+        _inc_directives[header_abs_path] = *include_info_ptr;
+    }            
+
+    return true;
+
+}   /* SourceFileParser::_try_resolve_header() */
+
+

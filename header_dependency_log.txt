@@ -1,0 +1,2 @@
+Cold cache duration: 2213ms
+Hot cache duration: 4ms
