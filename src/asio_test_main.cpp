@@ -16,7 +16,7 @@ int main(int argc, char ** argv) {
         boost::asio::co_spawn
             (
             io_ctx, 
-            server.listen_to_connections(), 
+            server.listen_for_connections(), 
             boost::asio::detached
             );
 

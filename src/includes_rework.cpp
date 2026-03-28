@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -12,6 +11,7 @@
 #include <boost/regex.hpp>
 #include <boost/uuid/detail/sha1.hpp>
 
+#include "file_state_view.hpp"
 
 static bool find_file_includes
     (
@@ -81,34 +81,6 @@ static bool requires_inc_storage
                 });
 
     return is_dash_isystem;
-
-}
-
-
-static bool generate_file_sha1
-    (
-    std::ifstream & input_stream,
-    sha1_type &     file_hash
-    )
-{
-    if (!input_stream.is_open()) {
-        return false;
-    }
-    
-    boost::uuids::detail::sha1  sha1;
-    std::vector<uint8_t>        stream_buff;
-    std::for_each(std::istreambuf_iterator<char>(input_stream),
-                  std::istreambuf_iterator<char>(),
-                  [&stream_buff](const char c) {
-                    stream_buff.emplace_back(c);
-                  });
-    
-    sha1.process_bytes(stream_buff.data(), stream_buff.size());
-    sha1.get_digest(file_hash);
-
-    input_stream.clear();
-    input_stream.seekg(0, std::ios::beg);
-    return true;
 
 }
 

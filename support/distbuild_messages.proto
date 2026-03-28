@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package distbuild;
+
+/*
+  Common data types
+*/
+message FileInfo {
+  string filename = 1;
+  uint64 filesize = 2;
+  string filehash = 3;
+}
+
+/*
+  Client messages
+*/
+message ClientMessage {
+  oneof content {
+    ClientSessionStartRequest session_start = 1;
+    ClientSessionAbortRequest session_abort = 2;
+    ClientFileChunkUploadRequest file_chunk_upload = 3;
+  }
+}
+
+message ClientSessionStartRequest {
+  string client_id = 1;
+  repeated FileInfo required_files_info = 2;
+}
+
+message ClientSessionAbortRequest {
+  string session_id = 1;
+  string client_id = 2;
+}
+
+message ClientFileChunkUploadRequest {
+  string session_id = 1;
+  string filename = 2;
+  uint64 sequence_no = 3;
+  uint64 offset = 4;
+  bytes data = 5;
+  bool is_last_chunk = 6;
+}
+
+/*
+  Server messages
+*/
+message ServerMessage {
+  oneof content {
+    ServerSessionConfirmedResponse session_confirmed = 1;
+    ServerSessionAbortResponse session_abort = 2;
+    ServerFileUpCompleteResponse file_up_complete = 3;
+    ServerAllReqUploadCompleteResponse all_req_up_complete = 4;
+  }
+}
+
+message ServerSessionConfirmedResponse {
+  string session_id = 1;
+  repeated string required_files = 2;
+}
+
+message ServerSessionAbortResponse {
+  string session_id = 1;
+  string client_id = 2;
+}
+
+message ServerFileUpCompleteResponse {
+  string session_id = 1;
+  string filename = 2;
+  bool success = 3;
+}
+
+message ServerAllReqUploadCompleteResponse {
+  string session_id = 1;
+}
+

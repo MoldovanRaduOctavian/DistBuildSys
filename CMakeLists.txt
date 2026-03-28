@@ -44,8 +44,11 @@ add_executable(distbuild_daemon
     src/object_storage.cpp
     src/client.cpp
     src/server.cpp
+    src/server_session.cpp
     src/proto_io.cpp
-    src/filetransfer_messages.pb.cc    
+    src/client_view.cpp
+    src/client_views_storage.cpp
+    src/distbuild_messages.pb.cc
 )
 target_link_libraries(distbuild_daemon
     PRIVATE
@@ -60,9 +63,12 @@ target_link_libraries(distbuild_daemon
 add_executable(asio_test 
     src/client.cpp
     src/server.cpp
+    src/server_session.cpp
     src/proto_io.cpp
+    src/client_view.cpp
+    src/client_views_storage.cpp
     src/asio_test_main.cpp
-    src/filetransfer_messages.pb.cc    
+    src/distbuild_messages.pb.cc    
 )
 target_link_libraries(asio_test
     PRIVATE
