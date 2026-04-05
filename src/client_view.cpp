@@ -1,9 +1,11 @@
 #include "client_view.hpp"
 
+#include <filesystem>
+#include <mutex>
+#include <unordered_set>
+
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <filesystem>
-#include <unordered_set>
 
 #include "distbuild_messages.pb.h"
 #include "file_state_view.hpp"
@@ -90,7 +92,8 @@ boost::asio::awaitable<void> ClientView::add_session
     boost::asio::ip::tcp::socket &&
                         session_socket,
     const distbuild::ClientSessionStartRequest &
-                        session_start_msg
+                        session_start_msg,
+    CompilerManager *   compiler_manager
     )
 {
     boost::uuids::uuid session_uuid = boost::uuids::random_generator()();
@@ -102,6 +105,7 @@ boost::asio::awaitable<void> ClientView::add_session
             boost::uuids::to_string(session_uuid),
             std::move(session_socket),
             this,
+            compiler_manager,
             session_uuid
             );
        
@@ -114,10 +118,27 @@ boost::asio::awaitable<void> ClientView::add_session
         }
     
     }
-
-    // Try to create the directory of the client associated to the
     
     ServerSession & new_session = _associated_sessions.find(boost::uuids::to_string(session_uuid))->second;
+
+    const std::vector<std::string> client_cmd_line_args
+        {
+        session_start_msg.client_cmd_line_args().begin(),
+        session_start_msg.client_cmd_line_args().end()
+        };
+    
+    const std::vector<std::string> client_idirs
+        {
+        session_start_msg.client_idirs().begin(),
+        session_start_msg.client_idirs().end()
+        };
+
+    new_session.preprocess_compiler_call
+        (
+        session_start_msg.client_working_dir(),
+        client_cmd_line_args,
+        client_idirs
+        );
     _create_client_dir_hierarchy(new_session);    
     
     std::vector<std::string> requested_files_client_paths;
@@ -163,7 +184,7 @@ boost::asio::awaitable<void> ClientView::add_session
                 break;
         }         
     }     
-
+    
     distbuild::ServerMessage session_confirmed_msg;
     session_confirmed_msg.mutable_session_confirmed()->set_session_id
         (
@@ -181,9 +202,19 @@ boost::asio::awaitable<void> ClientView::add_session
     // We have to construct the response for the client
     // and send it back, before it starts sending file chunks
     co_await proto_io::send_msg(new_session.get_session_socket(), session_confirmed_msg);
+    
+    try_compile_for_active_sessions();
 
 }   /* ClientView::add_session() */
 
 
+void ClientView::try_compile_for_active_sessions() {
+    
+    std::lock_guard<std::mutex> lock(_mtx);
+    for (auto & [_, session] : _associated_sessions) {
+        session.try_request_src_compilation();
+    }
+
+}   /* ClientView::try_compile_for_active_sessions() */
 
 

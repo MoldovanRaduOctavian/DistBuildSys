@@ -47,7 +47,7 @@ struct TableStruct_support_2fdistbuild_5fmessages_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxillaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[10]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[11]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -79,6 +79,9 @@ extern ServerFileUpCompleteResponseDefaultTypeInternal _ServerFileUpCompleteResp
 class ServerMessage;
 class ServerMessageDefaultTypeInternal;
 extern ServerMessageDefaultTypeInternal _ServerMessage_default_instance_;
+class ServerObjFileChunkResponse;
+class ServerObjFileChunkResponseDefaultTypeInternal;
+extern ServerObjFileChunkResponseDefaultTypeInternal _ServerObjFileChunkResponse_default_instance_;
 class ServerSessionAbortResponse;
 class ServerSessionAbortResponseDefaultTypeInternal;
 extern ServerSessionAbortResponseDefaultTypeInternal _ServerSessionAbortResponse_default_instance_;
@@ -95,6 +98,7 @@ template<> ::distbuild::FileInfo* Arena::CreateMaybeMessage<::distbuild::FileInf
 template<> ::distbuild::ServerAllReqUploadCompleteResponse* Arena::CreateMaybeMessage<::distbuild::ServerAllReqUploadCompleteResponse>(Arena*);
 template<> ::distbuild::ServerFileUpCompleteResponse* Arena::CreateMaybeMessage<::distbuild::ServerFileUpCompleteResponse>(Arena*);
 template<> ::distbuild::ServerMessage* Arena::CreateMaybeMessage<::distbuild::ServerMessage>(Arena*);
+template<> ::distbuild::ServerObjFileChunkResponse* Arena::CreateMaybeMessage<::distbuild::ServerObjFileChunkResponse>(Arena*);
 template<> ::distbuild::ServerSessionAbortResponse* Arena::CreateMaybeMessage<::distbuild::ServerSessionAbortResponse>(Arena*);
 template<> ::distbuild::ServerSessionConfirmedResponse* Arena::CreateMaybeMessage<::distbuild::ServerSessionConfirmedResponse>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
@@ -612,10 +616,63 @@ class ClientSessionStartRequest PROTOBUF_FINAL :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kRequiredFilesInfoFieldNumber = 2,
+    kClientCmdLineArgsFieldNumber = 5,
+    kClientIdirsFieldNumber = 6,
+    kRequiredFilesInfoFieldNumber = 7,
     kClientIdFieldNumber = 1,
+    kClientWorkingDirFieldNumber = 2,
+    kClientSourceFileFieldNumber = 3,
+    kClientCompilerFieldNumber = 4,
   };
-  // repeated .distbuild.FileInfo required_files_info = 2;
+  // repeated string client_cmd_line_args = 5;
+  int client_cmd_line_args_size() const;
+  private:
+  int _internal_client_cmd_line_args_size() const;
+  public:
+  void clear_client_cmd_line_args();
+  const std::string& client_cmd_line_args(int index) const;
+  std::string* mutable_client_cmd_line_args(int index);
+  void set_client_cmd_line_args(int index, const std::string& value);
+  void set_client_cmd_line_args(int index, std::string&& value);
+  void set_client_cmd_line_args(int index, const char* value);
+  void set_client_cmd_line_args(int index, const char* value, size_t size);
+  std::string* add_client_cmd_line_args();
+  void add_client_cmd_line_args(const std::string& value);
+  void add_client_cmd_line_args(std::string&& value);
+  void add_client_cmd_line_args(const char* value);
+  void add_client_cmd_line_args(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& client_cmd_line_args() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_client_cmd_line_args();
+  private:
+  const std::string& _internal_client_cmd_line_args(int index) const;
+  std::string* _internal_add_client_cmd_line_args();
+  public:
+
+  // repeated string client_idirs = 6;
+  int client_idirs_size() const;
+  private:
+  int _internal_client_idirs_size() const;
+  public:
+  void clear_client_idirs();
+  const std::string& client_idirs(int index) const;
+  std::string* mutable_client_idirs(int index);
+  void set_client_idirs(int index, const std::string& value);
+  void set_client_idirs(int index, std::string&& value);
+  void set_client_idirs(int index, const char* value);
+  void set_client_idirs(int index, const char* value, size_t size);
+  std::string* add_client_idirs();
+  void add_client_idirs(const std::string& value);
+  void add_client_idirs(std::string&& value);
+  void add_client_idirs(const char* value);
+  void add_client_idirs(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& client_idirs() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_client_idirs();
+  private:
+  const std::string& _internal_client_idirs(int index) const;
+  std::string* _internal_add_client_idirs();
+  public:
+
+  // repeated .distbuild.FileInfo required_files_info = 7;
   int required_files_info_size() const;
   private:
   int _internal_required_files_info_size() const;
@@ -658,6 +715,81 @@ class ClientSessionStartRequest PROTOBUF_FINAL :
   std::string* _internal_mutable_client_id();
   public:
 
+  // string client_working_dir = 2;
+  void clear_client_working_dir();
+  const std::string& client_working_dir() const;
+  void set_client_working_dir(const std::string& value);
+  void set_client_working_dir(std::string&& value);
+  void set_client_working_dir(const char* value);
+  void set_client_working_dir(const char* value, size_t size);
+  std::string* mutable_client_working_dir();
+  std::string* release_client_working_dir();
+  void set_allocated_client_working_dir(std::string* client_working_dir);
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  std::string* unsafe_arena_release_client_working_dir();
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  void unsafe_arena_set_allocated_client_working_dir(
+      std::string* client_working_dir);
+  private:
+  const std::string& _internal_client_working_dir() const;
+  void _internal_set_client_working_dir(const std::string& value);
+  std::string* _internal_mutable_client_working_dir();
+  public:
+
+  // string client_source_file = 3;
+  void clear_client_source_file();
+  const std::string& client_source_file() const;
+  void set_client_source_file(const std::string& value);
+  void set_client_source_file(std::string&& value);
+  void set_client_source_file(const char* value);
+  void set_client_source_file(const char* value, size_t size);
+  std::string* mutable_client_source_file();
+  std::string* release_client_source_file();
+  void set_allocated_client_source_file(std::string* client_source_file);
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  std::string* unsafe_arena_release_client_source_file();
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  void unsafe_arena_set_allocated_client_source_file(
+      std::string* client_source_file);
+  private:
+  const std::string& _internal_client_source_file() const;
+  void _internal_set_client_source_file(const std::string& value);
+  std::string* _internal_mutable_client_source_file();
+  public:
+
+  // string client_compiler = 4;
+  void clear_client_compiler();
+  const std::string& client_compiler() const;
+  void set_client_compiler(const std::string& value);
+  void set_client_compiler(std::string&& value);
+  void set_client_compiler(const char* value);
+  void set_client_compiler(const char* value, size_t size);
+  std::string* mutable_client_compiler();
+  std::string* release_client_compiler();
+  void set_allocated_client_compiler(std::string* client_compiler);
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  std::string* unsafe_arena_release_client_compiler();
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  void unsafe_arena_set_allocated_client_compiler(
+      std::string* client_compiler);
+  private:
+  const std::string& _internal_client_compiler() const;
+  void _internal_set_client_compiler(const std::string& value);
+  std::string* _internal_mutable_client_compiler();
+  public:
+
   // @@protoc_insertion_point(class_scope:distbuild.ClientSessionStartRequest)
  private:
   class _Internal;
@@ -665,8 +797,13 @@ class ClientSessionStartRequest PROTOBUF_FINAL :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> client_cmd_line_args_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> client_idirs_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::distbuild::FileInfo > required_files_info_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr client_id_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr client_working_dir_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr client_source_file_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr client_compiler_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_support_2fdistbuild_5fmessages_2eproto;
 };
@@ -1133,6 +1270,7 @@ class ServerMessage PROTOBUF_FINAL :
     kSessionAbort = 2,
     kFileUpComplete = 3,
     kAllReqUpComplete = 4,
+    kObjFileChunkTransmit = 5,
     CONTENT_NOT_SET = 0,
   };
 
@@ -1217,6 +1355,7 @@ class ServerMessage PROTOBUF_FINAL :
     kSessionAbortFieldNumber = 2,
     kFileUpCompleteFieldNumber = 3,
     kAllReqUpCompleteFieldNumber = 4,
+    kObjFileChunkTransmitFieldNumber = 5,
   };
   // .distbuild.ServerSessionConfirmedResponse session_confirmed = 1;
   bool has_session_confirmed() const;
@@ -1290,6 +1429,24 @@ class ServerMessage PROTOBUF_FINAL :
       ::distbuild::ServerAllReqUploadCompleteResponse* all_req_up_complete);
   ::distbuild::ServerAllReqUploadCompleteResponse* unsafe_arena_release_all_req_up_complete();
 
+  // .distbuild.ServerObjFileChunkResponse obj_file_chunk_transmit = 5;
+  bool has_obj_file_chunk_transmit() const;
+  private:
+  bool _internal_has_obj_file_chunk_transmit() const;
+  public:
+  void clear_obj_file_chunk_transmit();
+  const ::distbuild::ServerObjFileChunkResponse& obj_file_chunk_transmit() const;
+  ::distbuild::ServerObjFileChunkResponse* release_obj_file_chunk_transmit();
+  ::distbuild::ServerObjFileChunkResponse* mutable_obj_file_chunk_transmit();
+  void set_allocated_obj_file_chunk_transmit(::distbuild::ServerObjFileChunkResponse* obj_file_chunk_transmit);
+  private:
+  const ::distbuild::ServerObjFileChunkResponse& _internal_obj_file_chunk_transmit() const;
+  ::distbuild::ServerObjFileChunkResponse* _internal_mutable_obj_file_chunk_transmit();
+  public:
+  void unsafe_arena_set_allocated_obj_file_chunk_transmit(
+      ::distbuild::ServerObjFileChunkResponse* obj_file_chunk_transmit);
+  ::distbuild::ServerObjFileChunkResponse* unsafe_arena_release_obj_file_chunk_transmit();
+
   void clear_content();
   ContentCase content_case() const;
   // @@protoc_insertion_point(class_scope:distbuild.ServerMessage)
@@ -1299,6 +1456,7 @@ class ServerMessage PROTOBUF_FINAL :
   void set_has_session_abort();
   void set_has_file_up_complete();
   void set_has_all_req_up_complete();
+  void set_has_obj_file_chunk_transmit();
 
   inline bool has_content() const;
   inline void clear_has_content();
@@ -1312,6 +1470,7 @@ class ServerMessage PROTOBUF_FINAL :
     ::distbuild::ServerSessionAbortResponse* session_abort_;
     ::distbuild::ServerFileUpCompleteResponse* file_up_complete_;
     ::distbuild::ServerAllReqUploadCompleteResponse* all_req_up_complete_;
+    ::distbuild::ServerObjFileChunkResponse* obj_file_chunk_transmit_;
   } content_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   ::PROTOBUF_NAMESPACE_ID::uint32 _oneof_case_[1];
@@ -2021,6 +2180,284 @@ class ServerAllReqUploadCompleteResponse PROTOBUF_FINAL :
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_support_2fdistbuild_5fmessages_2eproto;
 };
+// -------------------------------------------------------------------
+
+class ServerObjFileChunkResponse PROTOBUF_FINAL :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:distbuild.ServerObjFileChunkResponse) */ {
+ public:
+  inline ServerObjFileChunkResponse() : ServerObjFileChunkResponse(nullptr) {};
+  virtual ~ServerObjFileChunkResponse();
+
+  ServerObjFileChunkResponse(const ServerObjFileChunkResponse& from);
+  ServerObjFileChunkResponse(ServerObjFileChunkResponse&& from) noexcept
+    : ServerObjFileChunkResponse() {
+    *this = ::std::move(from);
+  }
+
+  inline ServerObjFileChunkResponse& operator=(const ServerObjFileChunkResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ServerObjFileChunkResponse& operator=(ServerObjFileChunkResponse&& from) noexcept {
+    if (GetArena() == from.GetArena()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const ServerObjFileChunkResponse& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const ServerObjFileChunkResponse* internal_default_instance() {
+    return reinterpret_cast<const ServerObjFileChunkResponse*>(
+               &_ServerObjFileChunkResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    10;
+
+  friend void swap(ServerObjFileChunkResponse& a, ServerObjFileChunkResponse& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ServerObjFileChunkResponse* other) {
+    if (other == this) return;
+    if (GetArena() == other->GetArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ServerObjFileChunkResponse* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline ServerObjFileChunkResponse* New() const final {
+    return CreateMaybeMessage<ServerObjFileChunkResponse>(nullptr);
+  }
+
+  ServerObjFileChunkResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<ServerObjFileChunkResponse>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const ServerObjFileChunkResponse& from);
+  void MergeFrom(const ServerObjFileChunkResponse& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ServerObjFileChunkResponse* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "distbuild.ServerObjFileChunkResponse";
+  }
+  protected:
+  explicit ServerObjFileChunkResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_support_2fdistbuild_5fmessages_2eproto);
+    return ::descriptor_table_support_2fdistbuild_5fmessages_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kSessionIdFieldNumber = 1,
+    kCompilerStdoutFieldNumber = 4,
+    kCompilerStderrFieldNumber = 5,
+    kDataFieldNumber = 8,
+    kCompilerExitCodeFieldNumber = 2,
+    kCompilerCallDurationFieldNumber = 3,
+    kFilesizeFieldNumber = 6,
+    kIsLastChunkFieldNumber = 7,
+  };
+  // string session_id = 1;
+  void clear_session_id();
+  const std::string& session_id() const;
+  void set_session_id(const std::string& value);
+  void set_session_id(std::string&& value);
+  void set_session_id(const char* value);
+  void set_session_id(const char* value, size_t size);
+  std::string* mutable_session_id();
+  std::string* release_session_id();
+  void set_allocated_session_id(std::string* session_id);
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  std::string* unsafe_arena_release_session_id();
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  void unsafe_arena_set_allocated_session_id(
+      std::string* session_id);
+  private:
+  const std::string& _internal_session_id() const;
+  void _internal_set_session_id(const std::string& value);
+  std::string* _internal_mutable_session_id();
+  public:
+
+  // string compiler_stdout = 4;
+  void clear_compiler_stdout();
+  const std::string& compiler_stdout() const;
+  void set_compiler_stdout(const std::string& value);
+  void set_compiler_stdout(std::string&& value);
+  void set_compiler_stdout(const char* value);
+  void set_compiler_stdout(const char* value, size_t size);
+  std::string* mutable_compiler_stdout();
+  std::string* release_compiler_stdout();
+  void set_allocated_compiler_stdout(std::string* compiler_stdout);
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  std::string* unsafe_arena_release_compiler_stdout();
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  void unsafe_arena_set_allocated_compiler_stdout(
+      std::string* compiler_stdout);
+  private:
+  const std::string& _internal_compiler_stdout() const;
+  void _internal_set_compiler_stdout(const std::string& value);
+  std::string* _internal_mutable_compiler_stdout();
+  public:
+
+  // string compiler_stderr = 5;
+  void clear_compiler_stderr();
+  const std::string& compiler_stderr() const;
+  void set_compiler_stderr(const std::string& value);
+  void set_compiler_stderr(std::string&& value);
+  void set_compiler_stderr(const char* value);
+  void set_compiler_stderr(const char* value, size_t size);
+  std::string* mutable_compiler_stderr();
+  std::string* release_compiler_stderr();
+  void set_allocated_compiler_stderr(std::string* compiler_stderr);
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  std::string* unsafe_arena_release_compiler_stderr();
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  void unsafe_arena_set_allocated_compiler_stderr(
+      std::string* compiler_stderr);
+  private:
+  const std::string& _internal_compiler_stderr() const;
+  void _internal_set_compiler_stderr(const std::string& value);
+  std::string* _internal_mutable_compiler_stderr();
+  public:
+
+  // bytes data = 8;
+  void clear_data();
+  const std::string& data() const;
+  void set_data(const std::string& value);
+  void set_data(std::string&& value);
+  void set_data(const char* value);
+  void set_data(const void* value, size_t size);
+  std::string* mutable_data();
+  std::string* release_data();
+  void set_allocated_data(std::string* data);
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  std::string* unsafe_arena_release_data();
+  GOOGLE_PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  void unsafe_arena_set_allocated_data(
+      std::string* data);
+  private:
+  const std::string& _internal_data() const;
+  void _internal_set_data(const std::string& value);
+  std::string* _internal_mutable_data();
+  public:
+
+  // int32 compiler_exit_code = 2;
+  void clear_compiler_exit_code();
+  ::PROTOBUF_NAMESPACE_ID::int32 compiler_exit_code() const;
+  void set_compiler_exit_code(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_compiler_exit_code() const;
+  void _internal_set_compiler_exit_code(::PROTOBUF_NAMESPACE_ID::int32 value);
+  public:
+
+  // int32 compiler_call_duration = 3;
+  void clear_compiler_call_duration();
+  ::PROTOBUF_NAMESPACE_ID::int32 compiler_call_duration() const;
+  void set_compiler_call_duration(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_compiler_call_duration() const;
+  void _internal_set_compiler_call_duration(::PROTOBUF_NAMESPACE_ID::int32 value);
+  public:
+
+  // uint64 filesize = 6;
+  void clear_filesize();
+  ::PROTOBUF_NAMESPACE_ID::uint64 filesize() const;
+  void set_filesize(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_filesize() const;
+  void _internal_set_filesize(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
+
+  // bool is_last_chunk = 7;
+  void clear_is_last_chunk();
+  bool is_last_chunk() const;
+  void set_is_last_chunk(bool value);
+  private:
+  bool _internal_is_last_chunk() const;
+  void _internal_set_is_last_chunk(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:distbuild.ServerObjFileChunkResponse)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr session_id_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr compiler_stdout_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr compiler_stderr_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
+  ::PROTOBUF_NAMESPACE_ID::int32 compiler_exit_code_;
+  ::PROTOBUF_NAMESPACE_ID::int32 compiler_call_duration_;
+  ::PROTOBUF_NAMESPACE_ID::uint64 filesize_;
+  bool is_last_chunk_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_support_2fdistbuild_5fmessages_2eproto;
+};
 // ===================================================================
 
 
@@ -2531,7 +2968,398 @@ inline void ClientSessionStartRequest::unsafe_arena_set_allocated_client_id(
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ClientSessionStartRequest.client_id)
 }
 
-// repeated .distbuild.FileInfo required_files_info = 2;
+// string client_working_dir = 2;
+inline void ClientSessionStartRequest::clear_client_working_dir() {
+  client_working_dir_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline const std::string& ClientSessionStartRequest::client_working_dir() const {
+  // @@protoc_insertion_point(field_get:distbuild.ClientSessionStartRequest.client_working_dir)
+  return _internal_client_working_dir();
+}
+inline void ClientSessionStartRequest::set_client_working_dir(const std::string& value) {
+  _internal_set_client_working_dir(value);
+  // @@protoc_insertion_point(field_set:distbuild.ClientSessionStartRequest.client_working_dir)
+}
+inline std::string* ClientSessionStartRequest::mutable_client_working_dir() {
+  // @@protoc_insertion_point(field_mutable:distbuild.ClientSessionStartRequest.client_working_dir)
+  return _internal_mutable_client_working_dir();
+}
+inline const std::string& ClientSessionStartRequest::_internal_client_working_dir() const {
+  return client_working_dir_.Get();
+}
+inline void ClientSessionStartRequest::_internal_set_client_working_dir(const std::string& value) {
+  
+  client_working_dir_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
+}
+inline void ClientSessionStartRequest::set_client_working_dir(std::string&& value) {
+  
+  client_working_dir_.Set(
+    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:distbuild.ClientSessionStartRequest.client_working_dir)
+}
+inline void ClientSessionStartRequest::set_client_working_dir(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  client_working_dir_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+              GetArena());
+  // @@protoc_insertion_point(field_set_char:distbuild.ClientSessionStartRequest.client_working_dir)
+}
+inline void ClientSessionStartRequest::set_client_working_dir(const char* value,
+    size_t size) {
+  
+  client_working_dir_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:distbuild.ClientSessionStartRequest.client_working_dir)
+}
+inline std::string* ClientSessionStartRequest::_internal_mutable_client_working_dir() {
+  
+  return client_working_dir_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline std::string* ClientSessionStartRequest::release_client_working_dir() {
+  // @@protoc_insertion_point(field_release:distbuild.ClientSessionStartRequest.client_working_dir)
+  return client_working_dir_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void ClientSessionStartRequest::set_allocated_client_working_dir(std::string* client_working_dir) {
+  if (client_working_dir != nullptr) {
+    
+  } else {
+    
+  }
+  client_working_dir_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), client_working_dir,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:distbuild.ClientSessionStartRequest.client_working_dir)
+}
+inline std::string* ClientSessionStartRequest::unsafe_arena_release_client_working_dir() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:distbuild.ClientSessionStartRequest.client_working_dir)
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  
+  return client_working_dir_.UnsafeArenaRelease(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      GetArena());
+}
+inline void ClientSessionStartRequest::unsafe_arena_set_allocated_client_working_dir(
+    std::string* client_working_dir) {
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  if (client_working_dir != nullptr) {
+    
+  } else {
+    
+  }
+  client_working_dir_.UnsafeArenaSetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      client_working_dir, GetArena());
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ClientSessionStartRequest.client_working_dir)
+}
+
+// string client_source_file = 3;
+inline void ClientSessionStartRequest::clear_client_source_file() {
+  client_source_file_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline const std::string& ClientSessionStartRequest::client_source_file() const {
+  // @@protoc_insertion_point(field_get:distbuild.ClientSessionStartRequest.client_source_file)
+  return _internal_client_source_file();
+}
+inline void ClientSessionStartRequest::set_client_source_file(const std::string& value) {
+  _internal_set_client_source_file(value);
+  // @@protoc_insertion_point(field_set:distbuild.ClientSessionStartRequest.client_source_file)
+}
+inline std::string* ClientSessionStartRequest::mutable_client_source_file() {
+  // @@protoc_insertion_point(field_mutable:distbuild.ClientSessionStartRequest.client_source_file)
+  return _internal_mutable_client_source_file();
+}
+inline const std::string& ClientSessionStartRequest::_internal_client_source_file() const {
+  return client_source_file_.Get();
+}
+inline void ClientSessionStartRequest::_internal_set_client_source_file(const std::string& value) {
+  
+  client_source_file_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
+}
+inline void ClientSessionStartRequest::set_client_source_file(std::string&& value) {
+  
+  client_source_file_.Set(
+    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:distbuild.ClientSessionStartRequest.client_source_file)
+}
+inline void ClientSessionStartRequest::set_client_source_file(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  client_source_file_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+              GetArena());
+  // @@protoc_insertion_point(field_set_char:distbuild.ClientSessionStartRequest.client_source_file)
+}
+inline void ClientSessionStartRequest::set_client_source_file(const char* value,
+    size_t size) {
+  
+  client_source_file_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:distbuild.ClientSessionStartRequest.client_source_file)
+}
+inline std::string* ClientSessionStartRequest::_internal_mutable_client_source_file() {
+  
+  return client_source_file_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline std::string* ClientSessionStartRequest::release_client_source_file() {
+  // @@protoc_insertion_point(field_release:distbuild.ClientSessionStartRequest.client_source_file)
+  return client_source_file_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void ClientSessionStartRequest::set_allocated_client_source_file(std::string* client_source_file) {
+  if (client_source_file != nullptr) {
+    
+  } else {
+    
+  }
+  client_source_file_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), client_source_file,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:distbuild.ClientSessionStartRequest.client_source_file)
+}
+inline std::string* ClientSessionStartRequest::unsafe_arena_release_client_source_file() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:distbuild.ClientSessionStartRequest.client_source_file)
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  
+  return client_source_file_.UnsafeArenaRelease(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      GetArena());
+}
+inline void ClientSessionStartRequest::unsafe_arena_set_allocated_client_source_file(
+    std::string* client_source_file) {
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  if (client_source_file != nullptr) {
+    
+  } else {
+    
+  }
+  client_source_file_.UnsafeArenaSetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      client_source_file, GetArena());
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ClientSessionStartRequest.client_source_file)
+}
+
+// string client_compiler = 4;
+inline void ClientSessionStartRequest::clear_client_compiler() {
+  client_compiler_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline const std::string& ClientSessionStartRequest::client_compiler() const {
+  // @@protoc_insertion_point(field_get:distbuild.ClientSessionStartRequest.client_compiler)
+  return _internal_client_compiler();
+}
+inline void ClientSessionStartRequest::set_client_compiler(const std::string& value) {
+  _internal_set_client_compiler(value);
+  // @@protoc_insertion_point(field_set:distbuild.ClientSessionStartRequest.client_compiler)
+}
+inline std::string* ClientSessionStartRequest::mutable_client_compiler() {
+  // @@protoc_insertion_point(field_mutable:distbuild.ClientSessionStartRequest.client_compiler)
+  return _internal_mutable_client_compiler();
+}
+inline const std::string& ClientSessionStartRequest::_internal_client_compiler() const {
+  return client_compiler_.Get();
+}
+inline void ClientSessionStartRequest::_internal_set_client_compiler(const std::string& value) {
+  
+  client_compiler_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
+}
+inline void ClientSessionStartRequest::set_client_compiler(std::string&& value) {
+  
+  client_compiler_.Set(
+    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:distbuild.ClientSessionStartRequest.client_compiler)
+}
+inline void ClientSessionStartRequest::set_client_compiler(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  client_compiler_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+              GetArena());
+  // @@protoc_insertion_point(field_set_char:distbuild.ClientSessionStartRequest.client_compiler)
+}
+inline void ClientSessionStartRequest::set_client_compiler(const char* value,
+    size_t size) {
+  
+  client_compiler_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:distbuild.ClientSessionStartRequest.client_compiler)
+}
+inline std::string* ClientSessionStartRequest::_internal_mutable_client_compiler() {
+  
+  return client_compiler_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline std::string* ClientSessionStartRequest::release_client_compiler() {
+  // @@protoc_insertion_point(field_release:distbuild.ClientSessionStartRequest.client_compiler)
+  return client_compiler_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void ClientSessionStartRequest::set_allocated_client_compiler(std::string* client_compiler) {
+  if (client_compiler != nullptr) {
+    
+  } else {
+    
+  }
+  client_compiler_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), client_compiler,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:distbuild.ClientSessionStartRequest.client_compiler)
+}
+inline std::string* ClientSessionStartRequest::unsafe_arena_release_client_compiler() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:distbuild.ClientSessionStartRequest.client_compiler)
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  
+  return client_compiler_.UnsafeArenaRelease(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      GetArena());
+}
+inline void ClientSessionStartRequest::unsafe_arena_set_allocated_client_compiler(
+    std::string* client_compiler) {
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  if (client_compiler != nullptr) {
+    
+  } else {
+    
+  }
+  client_compiler_.UnsafeArenaSetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      client_compiler, GetArena());
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ClientSessionStartRequest.client_compiler)
+}
+
+// repeated string client_cmd_line_args = 5;
+inline int ClientSessionStartRequest::_internal_client_cmd_line_args_size() const {
+  return client_cmd_line_args_.size();
+}
+inline int ClientSessionStartRequest::client_cmd_line_args_size() const {
+  return _internal_client_cmd_line_args_size();
+}
+inline void ClientSessionStartRequest::clear_client_cmd_line_args() {
+  client_cmd_line_args_.Clear();
+}
+inline std::string* ClientSessionStartRequest::add_client_cmd_line_args() {
+  // @@protoc_insertion_point(field_add_mutable:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+  return _internal_add_client_cmd_line_args();
+}
+inline const std::string& ClientSessionStartRequest::_internal_client_cmd_line_args(int index) const {
+  return client_cmd_line_args_.Get(index);
+}
+inline const std::string& ClientSessionStartRequest::client_cmd_line_args(int index) const {
+  // @@protoc_insertion_point(field_get:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+  return _internal_client_cmd_line_args(index);
+}
+inline std::string* ClientSessionStartRequest::mutable_client_cmd_line_args(int index) {
+  // @@protoc_insertion_point(field_mutable:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+  return client_cmd_line_args_.Mutable(index);
+}
+inline void ClientSessionStartRequest::set_client_cmd_line_args(int index, const std::string& value) {
+  // @@protoc_insertion_point(field_set:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+  client_cmd_line_args_.Mutable(index)->assign(value);
+}
+inline void ClientSessionStartRequest::set_client_cmd_line_args(int index, std::string&& value) {
+  // @@protoc_insertion_point(field_set:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+  client_cmd_line_args_.Mutable(index)->assign(std::move(value));
+}
+inline void ClientSessionStartRequest::set_client_cmd_line_args(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  client_cmd_line_args_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+}
+inline void ClientSessionStartRequest::set_client_cmd_line_args(int index, const char* value, size_t size) {
+  client_cmd_line_args_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+}
+inline std::string* ClientSessionStartRequest::_internal_add_client_cmd_line_args() {
+  return client_cmd_line_args_.Add();
+}
+inline void ClientSessionStartRequest::add_client_cmd_line_args(const std::string& value) {
+  client_cmd_line_args_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+}
+inline void ClientSessionStartRequest::add_client_cmd_line_args(std::string&& value) {
+  client_cmd_line_args_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+}
+inline void ClientSessionStartRequest::add_client_cmd_line_args(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  client_cmd_line_args_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+}
+inline void ClientSessionStartRequest::add_client_cmd_line_args(const char* value, size_t size) {
+  client_cmd_line_args_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+ClientSessionStartRequest::client_cmd_line_args() const {
+  // @@protoc_insertion_point(field_list:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+  return client_cmd_line_args_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+ClientSessionStartRequest::mutable_client_cmd_line_args() {
+  // @@protoc_insertion_point(field_mutable_list:distbuild.ClientSessionStartRequest.client_cmd_line_args)
+  return &client_cmd_line_args_;
+}
+
+// repeated string client_idirs = 6;
+inline int ClientSessionStartRequest::_internal_client_idirs_size() const {
+  return client_idirs_.size();
+}
+inline int ClientSessionStartRequest::client_idirs_size() const {
+  return _internal_client_idirs_size();
+}
+inline void ClientSessionStartRequest::clear_client_idirs() {
+  client_idirs_.Clear();
+}
+inline std::string* ClientSessionStartRequest::add_client_idirs() {
+  // @@protoc_insertion_point(field_add_mutable:distbuild.ClientSessionStartRequest.client_idirs)
+  return _internal_add_client_idirs();
+}
+inline const std::string& ClientSessionStartRequest::_internal_client_idirs(int index) const {
+  return client_idirs_.Get(index);
+}
+inline const std::string& ClientSessionStartRequest::client_idirs(int index) const {
+  // @@protoc_insertion_point(field_get:distbuild.ClientSessionStartRequest.client_idirs)
+  return _internal_client_idirs(index);
+}
+inline std::string* ClientSessionStartRequest::mutable_client_idirs(int index) {
+  // @@protoc_insertion_point(field_mutable:distbuild.ClientSessionStartRequest.client_idirs)
+  return client_idirs_.Mutable(index);
+}
+inline void ClientSessionStartRequest::set_client_idirs(int index, const std::string& value) {
+  // @@protoc_insertion_point(field_set:distbuild.ClientSessionStartRequest.client_idirs)
+  client_idirs_.Mutable(index)->assign(value);
+}
+inline void ClientSessionStartRequest::set_client_idirs(int index, std::string&& value) {
+  // @@protoc_insertion_point(field_set:distbuild.ClientSessionStartRequest.client_idirs)
+  client_idirs_.Mutable(index)->assign(std::move(value));
+}
+inline void ClientSessionStartRequest::set_client_idirs(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  client_idirs_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:distbuild.ClientSessionStartRequest.client_idirs)
+}
+inline void ClientSessionStartRequest::set_client_idirs(int index, const char* value, size_t size) {
+  client_idirs_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:distbuild.ClientSessionStartRequest.client_idirs)
+}
+inline std::string* ClientSessionStartRequest::_internal_add_client_idirs() {
+  return client_idirs_.Add();
+}
+inline void ClientSessionStartRequest::add_client_idirs(const std::string& value) {
+  client_idirs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:distbuild.ClientSessionStartRequest.client_idirs)
+}
+inline void ClientSessionStartRequest::add_client_idirs(std::string&& value) {
+  client_idirs_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:distbuild.ClientSessionStartRequest.client_idirs)
+}
+inline void ClientSessionStartRequest::add_client_idirs(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  client_idirs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:distbuild.ClientSessionStartRequest.client_idirs)
+}
+inline void ClientSessionStartRequest::add_client_idirs(const char* value, size_t size) {
+  client_idirs_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:distbuild.ClientSessionStartRequest.client_idirs)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+ClientSessionStartRequest::client_idirs() const {
+  // @@protoc_insertion_point(field_list:distbuild.ClientSessionStartRequest.client_idirs)
+  return client_idirs_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+ClientSessionStartRequest::mutable_client_idirs() {
+  // @@protoc_insertion_point(field_mutable_list:distbuild.ClientSessionStartRequest.client_idirs)
+  return &client_idirs_;
+}
+
+// repeated .distbuild.FileInfo required_files_info = 7;
 inline int ClientSessionStartRequest::_internal_required_files_info_size() const {
   return required_files_info_.size();
 }
@@ -3339,6 +4167,79 @@ inline ::distbuild::ServerAllReqUploadCompleteResponse* ServerMessage::mutable_a
   return _internal_mutable_all_req_up_complete();
 }
 
+// .distbuild.ServerObjFileChunkResponse obj_file_chunk_transmit = 5;
+inline bool ServerMessage::_internal_has_obj_file_chunk_transmit() const {
+  return content_case() == kObjFileChunkTransmit;
+}
+inline bool ServerMessage::has_obj_file_chunk_transmit() const {
+  return _internal_has_obj_file_chunk_transmit();
+}
+inline void ServerMessage::set_has_obj_file_chunk_transmit() {
+  _oneof_case_[0] = kObjFileChunkTransmit;
+}
+inline void ServerMessage::clear_obj_file_chunk_transmit() {
+  if (_internal_has_obj_file_chunk_transmit()) {
+    if (GetArena() == nullptr) {
+      delete content_.obj_file_chunk_transmit_;
+    }
+    clear_has_content();
+  }
+}
+inline ::distbuild::ServerObjFileChunkResponse* ServerMessage::release_obj_file_chunk_transmit() {
+  // @@protoc_insertion_point(field_release:distbuild.ServerMessage.obj_file_chunk_transmit)
+  if (_internal_has_obj_file_chunk_transmit()) {
+    clear_has_content();
+      ::distbuild::ServerObjFileChunkResponse* temp = content_.obj_file_chunk_transmit_;
+    if (GetArena() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    content_.obj_file_chunk_transmit_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::distbuild::ServerObjFileChunkResponse& ServerMessage::_internal_obj_file_chunk_transmit() const {
+  return _internal_has_obj_file_chunk_transmit()
+      ? *content_.obj_file_chunk_transmit_
+      : *reinterpret_cast< ::distbuild::ServerObjFileChunkResponse*>(&::distbuild::_ServerObjFileChunkResponse_default_instance_);
+}
+inline const ::distbuild::ServerObjFileChunkResponse& ServerMessage::obj_file_chunk_transmit() const {
+  // @@protoc_insertion_point(field_get:distbuild.ServerMessage.obj_file_chunk_transmit)
+  return _internal_obj_file_chunk_transmit();
+}
+inline ::distbuild::ServerObjFileChunkResponse* ServerMessage::unsafe_arena_release_obj_file_chunk_transmit() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:distbuild.ServerMessage.obj_file_chunk_transmit)
+  if (_internal_has_obj_file_chunk_transmit()) {
+    clear_has_content();
+    ::distbuild::ServerObjFileChunkResponse* temp = content_.obj_file_chunk_transmit_;
+    content_.obj_file_chunk_transmit_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ServerMessage::unsafe_arena_set_allocated_obj_file_chunk_transmit(::distbuild::ServerObjFileChunkResponse* obj_file_chunk_transmit) {
+  clear_content();
+  if (obj_file_chunk_transmit) {
+    set_has_obj_file_chunk_transmit();
+    content_.obj_file_chunk_transmit_ = obj_file_chunk_transmit;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ServerMessage.obj_file_chunk_transmit)
+}
+inline ::distbuild::ServerObjFileChunkResponse* ServerMessage::_internal_mutable_obj_file_chunk_transmit() {
+  if (!_internal_has_obj_file_chunk_transmit()) {
+    clear_content();
+    set_has_obj_file_chunk_transmit();
+    content_.obj_file_chunk_transmit_ = CreateMaybeMessage< ::distbuild::ServerObjFileChunkResponse >(GetArena());
+  }
+  return content_.obj_file_chunk_transmit_;
+}
+inline ::distbuild::ServerObjFileChunkResponse* ServerMessage::mutable_obj_file_chunk_transmit() {
+  // @@protoc_insertion_point(field_mutable:distbuild.ServerMessage.obj_file_chunk_transmit)
+  return _internal_mutable_obj_file_chunk_transmit();
+}
+
 inline bool ServerMessage::has_content() const {
   return content_case() != CONTENT_NOT_SET;
 }
@@ -3944,9 +4845,419 @@ inline void ServerAllReqUploadCompleteResponse::unsafe_arena_set_allocated_sessi
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ServerAllReqUploadCompleteResponse.session_id)
 }
 
+// -------------------------------------------------------------------
+
+// ServerObjFileChunkResponse
+
+// string session_id = 1;
+inline void ServerObjFileChunkResponse::clear_session_id() {
+  session_id_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline const std::string& ServerObjFileChunkResponse::session_id() const {
+  // @@protoc_insertion_point(field_get:distbuild.ServerObjFileChunkResponse.session_id)
+  return _internal_session_id();
+}
+inline void ServerObjFileChunkResponse::set_session_id(const std::string& value) {
+  _internal_set_session_id(value);
+  // @@protoc_insertion_point(field_set:distbuild.ServerObjFileChunkResponse.session_id)
+}
+inline std::string* ServerObjFileChunkResponse::mutable_session_id() {
+  // @@protoc_insertion_point(field_mutable:distbuild.ServerObjFileChunkResponse.session_id)
+  return _internal_mutable_session_id();
+}
+inline const std::string& ServerObjFileChunkResponse::_internal_session_id() const {
+  return session_id_.Get();
+}
+inline void ServerObjFileChunkResponse::_internal_set_session_id(const std::string& value) {
+  
+  session_id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
+}
+inline void ServerObjFileChunkResponse::set_session_id(std::string&& value) {
+  
+  session_id_.Set(
+    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:distbuild.ServerObjFileChunkResponse.session_id)
+}
+inline void ServerObjFileChunkResponse::set_session_id(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  session_id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+              GetArena());
+  // @@protoc_insertion_point(field_set_char:distbuild.ServerObjFileChunkResponse.session_id)
+}
+inline void ServerObjFileChunkResponse::set_session_id(const char* value,
+    size_t size) {
+  
+  session_id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:distbuild.ServerObjFileChunkResponse.session_id)
+}
+inline std::string* ServerObjFileChunkResponse::_internal_mutable_session_id() {
+  
+  return session_id_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline std::string* ServerObjFileChunkResponse::release_session_id() {
+  // @@protoc_insertion_point(field_release:distbuild.ServerObjFileChunkResponse.session_id)
+  return session_id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void ServerObjFileChunkResponse::set_allocated_session_id(std::string* session_id) {
+  if (session_id != nullptr) {
+    
+  } else {
+    
+  }
+  session_id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), session_id,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:distbuild.ServerObjFileChunkResponse.session_id)
+}
+inline std::string* ServerObjFileChunkResponse::unsafe_arena_release_session_id() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:distbuild.ServerObjFileChunkResponse.session_id)
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  
+  return session_id_.UnsafeArenaRelease(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      GetArena());
+}
+inline void ServerObjFileChunkResponse::unsafe_arena_set_allocated_session_id(
+    std::string* session_id) {
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  if (session_id != nullptr) {
+    
+  } else {
+    
+  }
+  session_id_.UnsafeArenaSetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      session_id, GetArena());
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ServerObjFileChunkResponse.session_id)
+}
+
+// int32 compiler_exit_code = 2;
+inline void ServerObjFileChunkResponse::clear_compiler_exit_code() {
+  compiler_exit_code_ = 0;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ServerObjFileChunkResponse::_internal_compiler_exit_code() const {
+  return compiler_exit_code_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ServerObjFileChunkResponse::compiler_exit_code() const {
+  // @@protoc_insertion_point(field_get:distbuild.ServerObjFileChunkResponse.compiler_exit_code)
+  return _internal_compiler_exit_code();
+}
+inline void ServerObjFileChunkResponse::_internal_set_compiler_exit_code(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  compiler_exit_code_ = value;
+}
+inline void ServerObjFileChunkResponse::set_compiler_exit_code(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_compiler_exit_code(value);
+  // @@protoc_insertion_point(field_set:distbuild.ServerObjFileChunkResponse.compiler_exit_code)
+}
+
+// int32 compiler_call_duration = 3;
+inline void ServerObjFileChunkResponse::clear_compiler_call_duration() {
+  compiler_call_duration_ = 0;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ServerObjFileChunkResponse::_internal_compiler_call_duration() const {
+  return compiler_call_duration_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ServerObjFileChunkResponse::compiler_call_duration() const {
+  // @@protoc_insertion_point(field_get:distbuild.ServerObjFileChunkResponse.compiler_call_duration)
+  return _internal_compiler_call_duration();
+}
+inline void ServerObjFileChunkResponse::_internal_set_compiler_call_duration(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  compiler_call_duration_ = value;
+}
+inline void ServerObjFileChunkResponse::set_compiler_call_duration(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_compiler_call_duration(value);
+  // @@protoc_insertion_point(field_set:distbuild.ServerObjFileChunkResponse.compiler_call_duration)
+}
+
+// string compiler_stdout = 4;
+inline void ServerObjFileChunkResponse::clear_compiler_stdout() {
+  compiler_stdout_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline const std::string& ServerObjFileChunkResponse::compiler_stdout() const {
+  // @@protoc_insertion_point(field_get:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+  return _internal_compiler_stdout();
+}
+inline void ServerObjFileChunkResponse::set_compiler_stdout(const std::string& value) {
+  _internal_set_compiler_stdout(value);
+  // @@protoc_insertion_point(field_set:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+}
+inline std::string* ServerObjFileChunkResponse::mutable_compiler_stdout() {
+  // @@protoc_insertion_point(field_mutable:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+  return _internal_mutable_compiler_stdout();
+}
+inline const std::string& ServerObjFileChunkResponse::_internal_compiler_stdout() const {
+  return compiler_stdout_.Get();
+}
+inline void ServerObjFileChunkResponse::_internal_set_compiler_stdout(const std::string& value) {
+  
+  compiler_stdout_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
+}
+inline void ServerObjFileChunkResponse::set_compiler_stdout(std::string&& value) {
+  
+  compiler_stdout_.Set(
+    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+}
+inline void ServerObjFileChunkResponse::set_compiler_stdout(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  compiler_stdout_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+              GetArena());
+  // @@protoc_insertion_point(field_set_char:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+}
+inline void ServerObjFileChunkResponse::set_compiler_stdout(const char* value,
+    size_t size) {
+  
+  compiler_stdout_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+}
+inline std::string* ServerObjFileChunkResponse::_internal_mutable_compiler_stdout() {
+  
+  return compiler_stdout_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline std::string* ServerObjFileChunkResponse::release_compiler_stdout() {
+  // @@protoc_insertion_point(field_release:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+  return compiler_stdout_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void ServerObjFileChunkResponse::set_allocated_compiler_stdout(std::string* compiler_stdout) {
+  if (compiler_stdout != nullptr) {
+    
+  } else {
+    
+  }
+  compiler_stdout_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), compiler_stdout,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+}
+inline std::string* ServerObjFileChunkResponse::unsafe_arena_release_compiler_stdout() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  
+  return compiler_stdout_.UnsafeArenaRelease(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      GetArena());
+}
+inline void ServerObjFileChunkResponse::unsafe_arena_set_allocated_compiler_stdout(
+    std::string* compiler_stdout) {
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  if (compiler_stdout != nullptr) {
+    
+  } else {
+    
+  }
+  compiler_stdout_.UnsafeArenaSetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      compiler_stdout, GetArena());
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ServerObjFileChunkResponse.compiler_stdout)
+}
+
+// string compiler_stderr = 5;
+inline void ServerObjFileChunkResponse::clear_compiler_stderr() {
+  compiler_stderr_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline const std::string& ServerObjFileChunkResponse::compiler_stderr() const {
+  // @@protoc_insertion_point(field_get:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+  return _internal_compiler_stderr();
+}
+inline void ServerObjFileChunkResponse::set_compiler_stderr(const std::string& value) {
+  _internal_set_compiler_stderr(value);
+  // @@protoc_insertion_point(field_set:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+}
+inline std::string* ServerObjFileChunkResponse::mutable_compiler_stderr() {
+  // @@protoc_insertion_point(field_mutable:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+  return _internal_mutable_compiler_stderr();
+}
+inline const std::string& ServerObjFileChunkResponse::_internal_compiler_stderr() const {
+  return compiler_stderr_.Get();
+}
+inline void ServerObjFileChunkResponse::_internal_set_compiler_stderr(const std::string& value) {
+  
+  compiler_stderr_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
+}
+inline void ServerObjFileChunkResponse::set_compiler_stderr(std::string&& value) {
+  
+  compiler_stderr_.Set(
+    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+}
+inline void ServerObjFileChunkResponse::set_compiler_stderr(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  compiler_stderr_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+              GetArena());
+  // @@protoc_insertion_point(field_set_char:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+}
+inline void ServerObjFileChunkResponse::set_compiler_stderr(const char* value,
+    size_t size) {
+  
+  compiler_stderr_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+}
+inline std::string* ServerObjFileChunkResponse::_internal_mutable_compiler_stderr() {
+  
+  return compiler_stderr_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline std::string* ServerObjFileChunkResponse::release_compiler_stderr() {
+  // @@protoc_insertion_point(field_release:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+  return compiler_stderr_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void ServerObjFileChunkResponse::set_allocated_compiler_stderr(std::string* compiler_stderr) {
+  if (compiler_stderr != nullptr) {
+    
+  } else {
+    
+  }
+  compiler_stderr_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), compiler_stderr,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+}
+inline std::string* ServerObjFileChunkResponse::unsafe_arena_release_compiler_stderr() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  
+  return compiler_stderr_.UnsafeArenaRelease(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      GetArena());
+}
+inline void ServerObjFileChunkResponse::unsafe_arena_set_allocated_compiler_stderr(
+    std::string* compiler_stderr) {
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  if (compiler_stderr != nullptr) {
+    
+  } else {
+    
+  }
+  compiler_stderr_.UnsafeArenaSetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      compiler_stderr, GetArena());
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ServerObjFileChunkResponse.compiler_stderr)
+}
+
+// uint64 filesize = 6;
+inline void ServerObjFileChunkResponse::clear_filesize() {
+  filesize_ = PROTOBUF_ULONGLONG(0);
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 ServerObjFileChunkResponse::_internal_filesize() const {
+  return filesize_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 ServerObjFileChunkResponse::filesize() const {
+  // @@protoc_insertion_point(field_get:distbuild.ServerObjFileChunkResponse.filesize)
+  return _internal_filesize();
+}
+inline void ServerObjFileChunkResponse::_internal_set_filesize(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  
+  filesize_ = value;
+}
+inline void ServerObjFileChunkResponse::set_filesize(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_set_filesize(value);
+  // @@protoc_insertion_point(field_set:distbuild.ServerObjFileChunkResponse.filesize)
+}
+
+// bool is_last_chunk = 7;
+inline void ServerObjFileChunkResponse::clear_is_last_chunk() {
+  is_last_chunk_ = false;
+}
+inline bool ServerObjFileChunkResponse::_internal_is_last_chunk() const {
+  return is_last_chunk_;
+}
+inline bool ServerObjFileChunkResponse::is_last_chunk() const {
+  // @@protoc_insertion_point(field_get:distbuild.ServerObjFileChunkResponse.is_last_chunk)
+  return _internal_is_last_chunk();
+}
+inline void ServerObjFileChunkResponse::_internal_set_is_last_chunk(bool value) {
+  
+  is_last_chunk_ = value;
+}
+inline void ServerObjFileChunkResponse::set_is_last_chunk(bool value) {
+  _internal_set_is_last_chunk(value);
+  // @@protoc_insertion_point(field_set:distbuild.ServerObjFileChunkResponse.is_last_chunk)
+}
+
+// bytes data = 8;
+inline void ServerObjFileChunkResponse::clear_data() {
+  data_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline const std::string& ServerObjFileChunkResponse::data() const {
+  // @@protoc_insertion_point(field_get:distbuild.ServerObjFileChunkResponse.data)
+  return _internal_data();
+}
+inline void ServerObjFileChunkResponse::set_data(const std::string& value) {
+  _internal_set_data(value);
+  // @@protoc_insertion_point(field_set:distbuild.ServerObjFileChunkResponse.data)
+}
+inline std::string* ServerObjFileChunkResponse::mutable_data() {
+  // @@protoc_insertion_point(field_mutable:distbuild.ServerObjFileChunkResponse.data)
+  return _internal_mutable_data();
+}
+inline const std::string& ServerObjFileChunkResponse::_internal_data() const {
+  return data_.Get();
+}
+inline void ServerObjFileChunkResponse::_internal_set_data(const std::string& value) {
+  
+  data_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
+}
+inline void ServerObjFileChunkResponse::set_data(std::string&& value) {
+  
+  data_.Set(
+    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:distbuild.ServerObjFileChunkResponse.data)
+}
+inline void ServerObjFileChunkResponse::set_data(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  data_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+              GetArena());
+  // @@protoc_insertion_point(field_set_char:distbuild.ServerObjFileChunkResponse.data)
+}
+inline void ServerObjFileChunkResponse::set_data(const void* value,
+    size_t size) {
+  
+  data_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:distbuild.ServerObjFileChunkResponse.data)
+}
+inline std::string* ServerObjFileChunkResponse::_internal_mutable_data() {
+  
+  return data_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline std::string* ServerObjFileChunkResponse::release_data() {
+  // @@protoc_insertion_point(field_release:distbuild.ServerObjFileChunkResponse.data)
+  return data_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void ServerObjFileChunkResponse::set_allocated_data(std::string* data) {
+  if (data != nullptr) {
+    
+  } else {
+    
+  }
+  data_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), data,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:distbuild.ServerObjFileChunkResponse.data)
+}
+inline std::string* ServerObjFileChunkResponse::unsafe_arena_release_data() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:distbuild.ServerObjFileChunkResponse.data)
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  
+  return data_.UnsafeArenaRelease(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      GetArena());
+}
+inline void ServerObjFileChunkResponse::unsafe_arena_set_allocated_data(
+    std::string* data) {
+  GOOGLE_DCHECK(GetArena() != nullptr);
+  if (data != nullptr) {
+    
+  } else {
+    
+  }
+  data_.UnsafeArenaSetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      data, GetArena());
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:distbuild.ServerObjFileChunkResponse.data)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -10,6 +10,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
+#include "compiler_manager.hpp"
 #include "distbuild_messages.pb.h"
 #include "file_state_view.hpp"
 #include "server_session.hpp"
@@ -73,8 +74,16 @@ public:
         boost::asio::ip::tcp::socket &&
                             session_socket,
         const distbuild::ClientSessionStartRequest &
-                            session_start_msg
+                            session_start_msg,
+        CompilerManager *   compiler_manager
         );
+    
+    void try_compile_for_active_sessions();
+
+    const std::string & get_curr_working_dir() const {
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _current_working_dir;
+    }
 
 private:
         

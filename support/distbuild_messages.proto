@@ -24,7 +24,12 @@ message ClientMessage {
 
 message ClientSessionStartRequest {
   string client_id = 1;
-  repeated FileInfo required_files_info = 2;
+  string client_working_dir = 2;
+  string client_source_file = 3;
+  string client_compiler = 4;
+  repeated string client_cmd_line_args = 5;
+  repeated string client_idirs = 6;
+  repeated FileInfo required_files_info = 7;
 }
 
 message ClientSessionAbortRequest {
@@ -50,6 +55,7 @@ message ServerMessage {
     ServerSessionAbortResponse session_abort = 2;
     ServerFileUpCompleteResponse file_up_complete = 3;
     ServerAllReqUploadCompleteResponse all_req_up_complete = 4;
+    ServerObjFileChunkResponse obj_file_chunk_transmit = 5;
   }
 }
 
@@ -71,5 +77,16 @@ message ServerFileUpCompleteResponse {
 
 message ServerAllReqUploadCompleteResponse {
   string session_id = 1;
+}
+
+message ServerObjFileChunkResponse {
+  string session_id = 1;
+  int32 compiler_exit_code = 2;
+  int32 compiler_call_duration = 3;
+  string compiler_stdout = 4;
+  string compiler_stderr = 5;
+  uint64 filesize = 6;
+  bool is_last_chunk = 7;
+  bytes data = 8;
 }
 

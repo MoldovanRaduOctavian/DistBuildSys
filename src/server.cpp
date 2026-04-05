@@ -26,7 +26,15 @@ boost::asio::awaitable<void> Server::listen_for_connections() {
                 _client_views.add_client_view(client_message.session_start().client_id());
             
             const auto & socket_executor = tcp_socket.get_executor();
-            co_await session_client_view->add_session(std::move(tcp_socket), client_message.session_start());
+
+            // This does much more than simply adding a new session
+            // It initializes the session and performs a lot of bookkeeping
+            co_await session_client_view->add_session
+                (
+                std::move(tcp_socket), 
+                client_message.session_start(),
+                &_compiler_manager
+                );
              
         }
         else {
@@ -40,53 +48,4 @@ boost::asio::awaitable<void> Server::listen_for_connections() {
     }
     
 }   /* Server::listen_to_connections() */
-
-/*
-boost::asio::awaitable<void> Server::handle_session
-    (
-    ServerSession & server_session
-    )
-{
-    // Handle client messages until the session is over
-    for (;;) {
-        distbuild::ClientMessage client_message;
-        co_await proto_io::receive_msg(server_session.get_session_socket(), client_message);
-        switch (client_message.content_case()) {
-            case distbuild::ClientMessage::kSessionStart:
-                // This is already handled, so receiving it again
-                // should result in an error, maybe
-                break;
-            case distbuild::ClientMessage::kSessionAbort:
-                // The client encountered an error state during the session
-                // and requests the session to be terminated
-                break;
-            case distbuild::ClientMessage::kFileChunkUpload:
-                // Call function to assemble file chunks 
-                // Most likely this should not even be a coroutine
-                // since we already read all the necessary data
-                (void)handle_client_file_chunk(server_session, client_message.file_chunk_upload());
-                break;
-            default:
-                break;
-        }
-    }
-
-}
-
-
-boost::asio::awaitable<void> Server::handle_client_file_chunk
-    (
-    ServerSession & server_session,
-    const distbuild::ClientFileChunkUploadRequest & 
-                    file_chunk_message
-    )
-{
-    // Have a handle to a filestream for the currently received file
-    // This is the full path of the file on the client node
-    // The server should have access to a file state data structure
-    file_chunk_message.filename();
-    co_return;
-
-}   
-*/
 

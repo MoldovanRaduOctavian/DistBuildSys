@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <google/protobuf/message.h>
 
+#include "compiler_manager.hpp"
 #include "client_views_storage.hpp"
 #include "server_session.hpp"
 
@@ -28,6 +29,7 @@ public:
                 server_port
                 )
             ),
+        _compiler_manager(8),
         _server_ip(server_ip),
         _server_port(server_port)
     {};
@@ -41,6 +43,7 @@ private:
     
     /* The server owns the client views storage */
     ClientViewsStorage              _client_views;  
+    CompilerManager                 _compiler_manager;
     std::string                     _server_ip;
     uint16_t                        _server_port;
 
