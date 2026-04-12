@@ -85,7 +85,7 @@ CompilationOutput CompilerManager::_compile_src
     return CompilationOutput{
         stdout_oss.str(),
         stderr_oss.str(),
-        compiler_exit_code,
+        compilation_duration,
         compiler_exit_code
     };
 

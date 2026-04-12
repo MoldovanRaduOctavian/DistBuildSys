@@ -1,6 +1,7 @@
 #ifndef SERVER_SESSION_HPP
 #define SERVER_SESSION_HPP
 
+#include <deque>
 #include <mutex>
 #include <string>
 
@@ -11,10 +12,11 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "client_view.hpp"
 #include "distbuild_messages.pb.h"
 #include "file_state_view.hpp"
 
-class ClientView;
+
 class CompilerManager;
 struct CompilationOutput;
 
@@ -34,7 +36,8 @@ public:
         _session_socket(std::move(session_socket)),
         _compiler_manager(compiler_manager),
         _parent_client_view(parent_client_view),
-        _session_uuid(session_uuid)
+        _session_uuid(session_uuid),
+        _current_working_dir(parent_client_view->get_curr_working_dir())
     {};
    
     void add_required_file_state
@@ -78,12 +81,14 @@ public:
     }
 
     boost::asio::awaitable<void> handle_session();
-    boost::asio::awaitable<void> handle_file_transfer
+
+    // Rewrite file upload chunk handling logic
+    bool process_file_chunk
         (
         std::shared_ptr<distbuild::ClientFileChunkUploadRequest>
                     file_chunk_msg
         );
-    
+
     void preprocess_compiler_call
         (
         const std::string &     client_working_dir,             
@@ -100,11 +105,22 @@ public:
         const CompilationOutput & compilation_out
         );
     
-    boost::asio::awaitable<void> send_compilation_result(); 
+    void send_compilation_result(); 
+
+    void send_msg
+        (
+        const distbuild::ServerMessage & msg
+        );
 
 private:
 
+    boost::asio::awaitable<void>    _writer_loop();
+
     boost::asio::ip::tcp::socket    _session_socket;
+    boost::asio::strand<boost::asio::any_io_executor>
+                                    _strand{ _session_socket.get_executor() };
+    std::deque<std::string>         _write_queue;
+    bool                            _write_in_progress;
 
     // DO NOT FORGET TO INITIALIZE _COMPILER_MANAGER
     CompilerManager *               _compiler_manager;
@@ -116,6 +132,9 @@ private:
 
     // Files to be uploaded internal state
     std::vector<FileStateView *>    _required_files_state;    
+
+    std::unordered_map<std::string, FileTransferState>
+                                    _file_transfer_states;
 
     std::string                     _in_src_file;
     std::string                     _compiler_name;
@@ -131,10 +150,6 @@ private:
     uint64_t                        _compile_start_time;
     
     mutable std::mutex              _mtx;
-
-    // An enum value with the current session state
-    // in the client-server exchange
-    // ... _session_state
 
 };
 

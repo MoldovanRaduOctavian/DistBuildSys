@@ -43,6 +43,29 @@ struct FileStateView {
 
 };
 
+struct FileTransferState {
+    bool            is_finished;
+    std::ofstream   file_out_stream;
+    std::string     session_id;
+    std::string     filename;
+    uint64_t        last_seq_no;
+    uint64_t        last_offset;
+
+    FileTransferState
+        (
+        const std::string & _session_id,
+        const std::string & _filename
+        ) :
+        is_finished(false),
+        file_out_stream(_filename, std::ios::binary),
+        session_id(_session_id),
+        filename(_filename),
+        last_seq_no(0),
+        last_offset(0)
+    {};
+
+};
+
 inline std::string cnvt_client_to_server_path
     (
     const std::string & current_working_dir,
@@ -109,6 +132,18 @@ inline bool generate_file_sha1
     return true;
 
 }   /* generate_file_sha1() */
+
+
+inline std::string generate_obj_file_path
+    (
+    const std::string & out_obj_dir,
+    const std::string & client_id,
+    const std::string & session_id
+    )
+{
+    return out_obj_dir + "/" + client_id + "_" + session_id + ".o";
+
+}   /* generate_obj_file_path() */
 
 #endif /* FILE_STATE_VIEW_HPP */
 

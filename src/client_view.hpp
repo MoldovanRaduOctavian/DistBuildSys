@@ -13,7 +13,8 @@
 #include "compiler_manager.hpp"
 #include "distbuild_messages.pb.h"
 #include "file_state_view.hpp"
-#include "server_session.hpp"
+
+class ServerSession;
 
 // The view of a client state, from a server's perspective
 class ClientView {
@@ -27,7 +28,7 @@ public:
         ) :
         _client_uuid(boost::uuids::string_generator()(client_uuid)),        
         _current_working_dir(current_working_dir),
-        _last_active_ts(std::chrono::system_clock::now())
+        _last_active_ts(std::chrono::steady_clock::now())
         {};
 
     // I will need an interface to insert file state views
@@ -52,6 +53,12 @@ public:
         return &file_state_it->second;
     }
     
+    const boost::uuids::uuid & get_client_id() const
+    {
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _client_uuid;
+    }
+
     bool update_file_state
         (
         const std::string &     client_path,
@@ -69,7 +76,7 @@ public:
 
     }
 
-    boost::asio::awaitable<void> add_session
+    void add_session
         (
         boost::asio::ip::tcp::socket &&
                             session_socket,
@@ -84,6 +91,11 @@ public:
         std::lock_guard<std::mutex> lock(_mtx);
         return _current_working_dir;
     }
+    
+    void update_last_active_ts() {
+        std::lock_guard<std::mutex> lock(_mtx);
+        _last_active_ts = std::chrono::steady_clock::now();
+    }
 
 private:
         
@@ -95,7 +107,7 @@ private:
     boost::uuids::uuid      _client_uuid;
     std::string             _current_working_dir;
     // When do I update this ???
-    std::chrono::system_clock::time_point
+    std::chrono::steady_clock::time_point
                             _last_active_ts;
 
     /* mapping from client file name to server file state */

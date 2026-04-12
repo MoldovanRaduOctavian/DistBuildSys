@@ -2,6 +2,7 @@
 
 namespace proto_io {
 
+/*
 boost::asio::awaitable<void> send_msg
     (
     boost::asio::ip::tcp::socket &  tcp_socket,  
@@ -27,7 +28,8 @@ boost::asio::awaitable<void> send_msg
         boost::asio::use_awaitable
         );
 
-}   /* proto_io::send() */
+}   
+*/
 
 }
 

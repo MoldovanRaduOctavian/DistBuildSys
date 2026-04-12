@@ -1,18 +1,13 @@
 #ifndef LRU_STORAGE_HPP
 #define LRU_STORAGE_HPP
 
-#include <concepts>
 #include <list>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 
-template<typename T>
-concept HasSize = requires(T t) {
-    {t.size} -> std::same_as<size_t>;
-};
 
-template<HasSize T>
+template<typename T>
 class LruStorage {
 
 private:

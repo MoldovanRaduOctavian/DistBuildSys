@@ -9,6 +9,9 @@
 class ServerSession;
 
 struct CompilationRequest {
+    // If the ServerSession ptr is invalidated 
+    // while a compilation request is being processed
+    // this will blow up
     ServerSession * requester_session;
     std::string     compiler_name;
     std::vector<std::string> 

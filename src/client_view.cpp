@@ -87,7 +87,7 @@ FileStateView & ClientView::add_file_state
 }   /* ClientView::add_file_state() */
 
 
-boost::asio::awaitable<void> ClientView::add_session
+void ClientView::add_session
     (
     boost::asio::ip::tcp::socket &&
                         session_socket,
@@ -201,7 +201,7 @@ boost::asio::awaitable<void> ClientView::add_session
     new_session.start_session();
     // We have to construct the response for the client
     // and send it back, before it starts sending file chunks
-    co_await proto_io::send_msg(new_session.get_session_socket(), session_confirmed_msg);
+    new_session.send_msg(session_confirmed_msg);
     
     try_compile_for_active_sessions();
 

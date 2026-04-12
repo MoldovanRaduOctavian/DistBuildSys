@@ -7,7 +7,6 @@
 #include "distbuild_messages.pb.h"
 
 #include "proto_io.hpp"
-#include "server_session.hpp"
 
 boost::asio::awaitable<void> Server::listen_for_connections() {
 
@@ -25,11 +24,9 @@ boost::asio::awaitable<void> Server::listen_for_connections() {
             ClientView * session_client_view = 
                 _client_views.add_client_view(client_message.session_start().client_id());
             
-            const auto & socket_executor = tcp_socket.get_executor();
-
             // This does much more than simply adding a new session
             // It initializes the session and performs a lot of bookkeeping
-            co_await session_client_view->add_session
+            session_client_view->add_session
                 (
                 std::move(tcp_socket), 
                 client_message.session_start(),
