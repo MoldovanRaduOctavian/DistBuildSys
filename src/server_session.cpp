@@ -51,7 +51,9 @@ void ServerSession::preprocess_compiler_call
 
     // This needs to get figured out
     // _current_working_dir for the session can be retrieved from ClientView
-    // _current_working_dir = cnvt_client_to_server_path(_current_working_dir, client_working_dir);    
+    std::cout << "CLIENT WORKING DIR: " << client_working_dir << '\n';
+    _current_working_dir = cnvt_client_to_server_path(_current_working_dir, client_working_dir);    
+    std::cout << "SERVER WORKING DIR: " << _current_working_dir << '\n';
     
     std::lock_guard<std::mutex> lock(_mtx);
 
@@ -79,7 +81,7 @@ void ServerSession::preprocess_compiler_call
             );
     }
 
-    _cmd_line_args.insert(_cmd_line_args.end(), {"-o", _out_obj_file, _in_src_file});
+    _cmd_line_args.insert(_cmd_line_args.end(), {"-o", _out_obj_file, fixed_in_src_file});
 
 }   /* ServerSession::preprocess_compiler_call() */
 
@@ -87,10 +89,12 @@ void ServerSession::preprocess_compiler_call
 void ServerSession::try_request_src_compilation() {
     
     // Be really careful about staying thread safe while accessing file data 
-    std::lock_guard<std::mutex> lock(_mtx);
+    // THIS CAUSES A DEADLOCK...DANGEROUS SITUATION
+    // std::lock_guard<std::mutex> lock(_mtx);
     for (const FileStateView * required_file : _required_files_state) {
         if (required_file->file_status != FileStateView::Status::FILE_STATUS_AVAILABLE) {
             // Not all files necessary for compilation have been uploaded
+            std::cout << "NOT ALL FILES ARE UPLOADED\n";
             return;
         }
     }
@@ -128,11 +132,9 @@ void ServerSession::publish_compilation_results
 
 }   /* ServerSession::publish_compilation_results() */
 
-
+/*
 void ServerSession::send_compilation_result() {
     
-    // What if the session socket gets used simulteneously form multiple threads???
-    // That seems like a dangerous situation
     if (_compiler_exit_code != 0) {
         // Handle the case in which compilation has failed
         distbuild::ServerMessage fail_obj_file_response{};
@@ -164,7 +166,7 @@ void ServerSession::send_compilation_result() {
         std::ifstream obj_file_stream(_out_obj_file, std::ios::binary);
         uint64_t obj_file_sz = std::filesystem::file_size(_out_obj_file);
         
-
+        // THE MESSAGE BUILDING IS WRONG
         const size_t OBJ_CHUNK_SZ = 64 * 1024;
         std::vector<char> chunk_buff(OBJ_CHUNK_SZ);
         while (obj_file_stream.read(chunk_buff.data(), OBJ_CHUNK_SZ)
@@ -209,7 +211,81 @@ void ServerSession::send_compilation_result() {
         }
     }
 
-}   /* ServerSession::send_compilation_result() */
+} 
+*/
+
+void ServerSession::send_compilation_result()
+{
+    const bool compilation_failed = (_compiler_exit_code != 0);
+
+    auto build_msg = [&]() -> distbuild::ServerMessage {
+        distbuild::ServerMessage msg;
+
+        auto* chunk = msg.mutable_obj_file_chunk_transmit();
+        chunk->set_session_id(boost::uuids::to_string(_session_uuid));
+        chunk->set_compiler_exit_code(_compiler_exit_code);
+        chunk->set_compiler_call_duration(_compile_duration);
+
+        return msg;
+    };
+
+    if (compilation_failed)
+    {
+        distbuild::ServerMessage msg = build_msg();
+        auto* chunk = msg.mutable_obj_file_chunk_transmit();
+
+        chunk->set_filesize(0);
+        chunk->set_is_last_chunk(true);
+
+        {
+            std::lock_guard<std::mutex> lock(_mtx);
+            chunk->set_compiler_stdout(_compiler_stdout);
+            chunk->set_compiler_stderr(_compiler_stderr);
+        }
+
+        send_msg(msg);
+        return;
+    }
+
+    std::ifstream obj_file_stream(_out_obj_file, std::ios::binary);
+    if (!obj_file_stream)
+    {
+        // optional: handle error case
+        return;
+    }
+
+    const uint64_t file_size =
+        std::filesystem::file_size(_out_obj_file);
+
+    constexpr size_t CHUNK_SIZE = 64 * 1024;
+    std::vector<char> buffer(CHUNK_SIZE);
+
+    while (true)
+    {
+        obj_file_stream.read(buffer.data(), CHUNK_SIZE);
+        std::streamsize bytes_read = obj_file_stream.gcount();
+
+        if (bytes_read <= 0)
+            break;
+
+        distbuild::ServerMessage msg = build_msg();
+        auto* chunk = msg.mutable_obj_file_chunk_transmit();
+
+        chunk->set_filesize(file_size);
+        chunk->set_data(buffer.data(), bytes_read);
+        chunk->set_is_last_chunk(bytes_read < (std::streamsize)CHUNK_SIZE);
+
+        // attach logs only on last chunk
+        if (chunk->is_last_chunk())
+        {
+            std::lock_guard<std::mutex> lock(_mtx);
+            chunk->set_compiler_stdout(_compiler_stdout);
+            chunk->set_compiler_stderr(_compiler_stderr);
+        }
+
+        send_msg(msg);
+    }
+}
 
 
 boost::asio::awaitable<void> ServerSession::handle_session() {
@@ -238,6 +314,11 @@ boost::asio::awaitable<void> ServerSession::handle_session() {
                         client_message.file_chunk_upload()    
                         );
                 
+                std::cout << "I HOPE WE GET TO CHUNK PROCESSING!\n";
+                std::cout << "Received filename: " << file_chunk_msg->filename() << '\n';
+
+                // Does file_chunk_msg get invalidated by the time it
+                // is passed to process_file_chunk
                 bool chunk_upload_success = process_file_chunk(file_chunk_msg); 
                 if (chunk_upload_success == false) {
                     distbuild::ServerMessage session_abort_msg;
@@ -291,54 +372,70 @@ bool ServerSession::process_file_chunk
 
     // This coroutine should be really strict about checking 
     // the preconditions and postconditions for a file tranfer
+
+    // file_chunk_msg get invalidated at this point ?!?!?!
+    std::cout << "process_file_chunk file_chunk_msg filename: " << file_chunk_msg->filename() << '\n';
+
     const FileStateView * curr_file_state = _parent_client_view->get_file_state(file_chunk_msg->filename());
-    if (curr_file_state == nullptr
-     || file_chunk_msg->session_id() != session_uuid
-     || file_chunk_msg->offset() != 0 || file_chunk_msg->sequence_no() != 0 
-        ) 
+    if (curr_file_state == nullptr) {
+        return false;
+    }
+
+    if (file_chunk_msg->session_id() != session_uuid) 
     {
+        // This is really weird, curr_file_state == nullptr
+        // should not be handled like this
         set_file_state
             (
             file_chunk_msg->filename(), 
             *curr_file_state,
             FileStateView::Status::FILE_STATUS_FAULT
             );
-
+        
+        std::cout << "VIATA MEA OF IMPART ALATURI DE VOLUNTARI [1]!\n";
         return false;
     }
- 
+    
+    // It almost seems as if curr_file_state is not nullptr
+    // but it still is an invalid pointer and that causes
+    // the segmentation fault
     std::string server_file_name = curr_file_state->server_file_path;
 
         
     // BE CAREFUL WITH LOCKING TOO MUCH
     std::lock_guard<std::mutex> lock(_mtx);
-
-    auto transfer_state_it = _file_transfer_states.find(server_file_name);
-    if (transfer_state_it == _file_transfer_states.end()) {
-        _file_transfer_states.try_emplace
+    
+    auto [transfer_state_it, ok] = _file_transfer_states.try_emplace
             (
             server_file_name,
             session_uuid,
             server_file_name
             );
 
-        transfer_state_it = _file_transfer_states.find(server_file_name);
-
-    }
-    
     FileTransferState & transfer_state = transfer_state_it->second;
+
     if (transfer_state.is_finished == true) {
         // The file was either uploaded or failed
         // exit early
         return true;
     }
-
+     
+    // We've got problem with path conversions client <-> server great
+    auto client_filename = cnvt_server_to_client_path(_current_working_dir, transfer_state.filename);
     if (transfer_state.session_id != session_uuid
      || file_chunk_msg->sequence_no() != transfer_state.last_seq_no + 1
-     || file_chunk_msg->offset() <= transfer_state.last_offset
-     || file_chunk_msg->filename() != transfer_state.filename
+     || file_chunk_msg->offset() < transfer_state.last_offset
+//     || file_chunk_msg->filename() != client_filename
     )
     {
+        std::cout << "Failed validity comparisons: \n";
+        std::cout << "Sequence no:" << file_chunk_msg->sequence_no() 
+                << " " << transfer_state.last_seq_no + 1 << '\n';        
+        std::cout << "Offset:" << file_chunk_msg->offset() 
+                << " " << transfer_state.last_offset << '\n';
+        std::cout << "Filename:" << file_chunk_msg->filename() 
+                << " " << client_filename << '\n';
+
         transfer_state.is_finished = true;
         transfer_state.file_out_stream.close();
         // The session will be stopped on chunk upload failure
@@ -349,6 +446,7 @@ bool ServerSession::process_file_chunk
             FileStateView::Status::FILE_STATUS_FAULT
             );
 
+        std::cout << "VIATA MEA OF IMPART ALATURI DE VOLUNTARI [2]!\n";
         return false;
     }
     
@@ -373,6 +471,8 @@ bool ServerSession::process_file_chunk
                 FileStateView::Status::FILE_STATUS_FAULT
                 );
             
+
+            std::cout << "VIATA MEA OF IMPART ALATURI DE VOLUNTARI [3]!\n";
             return false;
 
         }
@@ -396,6 +496,7 @@ bool ServerSession::process_file_chunk
                 FileStateView::Status::FILE_STATUS_FAULT
                 );
             
+            std::cout << "VIATA MEA OF IMPART ALATURI DE VOLUNTARI [4]!\n";
             return false;
         }    
 
@@ -407,20 +508,20 @@ bool ServerSession::process_file_chunk
             FileStateView::Status::FILE_STATUS_AVAILABLE
             );
         
+        // This seems to be blocking for some reasons
+        // This causes a deadlock
         _parent_client_view->try_compile_for_active_sessions();
 
         // DO NOT FORGET TO SEND A FILE COMPLETE MESSAGE BACK TO THE CLIENT
-        distbuild::ServerMessage file_up_complete_msg;
-        file_up_complete_msg.mutable_file_up_complete()->set_session_id
-            (
-            session_uuid
-            );
-        file_up_complete_msg.mutable_file_up_complete()->set_filename
-            (
-            file_chunk_msg->filename() 
-            );
-        file_up_complete_msg.mutable_file_up_complete()->set_success(true);
-        send_msg(file_up_complete_msg);
+        distbuild::ServerMessage server_msg{};
+        auto * file_up_complete_msg = server_msg.mutable_file_up_complete();
+        file_up_complete_msg->set_session_id(session_uuid);
+        file_up_complete_msg->set_filename(file_chunk_msg->filename());
+        file_up_complete_msg->set_success(true);
+
+        std::cout << "FAC DERANJ: " << file_chunk_msg->filename() << '\n';
+
+        send_msg(server_msg);
 
     }
     

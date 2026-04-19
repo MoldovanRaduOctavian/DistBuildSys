@@ -1,5 +1,7 @@
 #include "server.hpp"
 
+#include <iostream>
+
 #include <boost/asio.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <google/protobuf/message.h>
@@ -8,12 +10,17 @@
 
 #include "proto_io.hpp"
 
+
 boost::asio::awaitable<void> Server::listen_for_connections() {
 
     for (;;) {
         // This will be updated to accomodate multiple connections soon
+        
         boost::asio::ip::tcp::socket tcp_socket = 
             co_await _tcp_acceptor.async_accept(boost::asio::use_awaitable);
+         
+        std::cout << "DO WE EVEN GET HERE ANYMORE?\n";
+
 
         // This is where we create a new session
         distbuild::ClientMessage client_message;

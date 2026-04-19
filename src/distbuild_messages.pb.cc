@@ -376,7 +376,7 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 const char descriptor_table_protodef_support_2fdistbuild_5fmessages_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n support/distbuild_messages.proto\022\tdist"
   "build\"@\n\010FileInfo\022\020\n\010filename\030\001 \001(\t\022\020\n\010f"
-  "ilesize\030\002 \001(\004\022\020\n\010filehash\030\003 \001(\t\"\336\001\n\rClie"
+  "ilesize\030\002 \001(\004\022\020\n\010filehash\030\003 \001(\014\"\336\001\n\rClie"
   "ntMessage\022=\n\rsession_start\030\001 \001(\0132$.distb"
   "uild.ClientSessionStartRequestH\000\022=\n\rsess"
   "ion_abort\030\002 \001(\0132$.distbuild.ClientSessio"
@@ -546,12 +546,11 @@ const char* FileInfo::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::i
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string filehash = 3;
+      // bytes filehash = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
           auto str = _internal_mutable_filehash();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "distbuild.FileInfo.filehash"));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -599,13 +598,9 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(2, this->_internal_filesize(), target);
   }
 
-  // string filehash = 3;
+  // bytes filehash = 3;
   if (this->filehash().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_filehash().data(), static_cast<int>(this->_internal_filehash().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "distbuild.FileInfo.filehash");
-    target = stream->WriteStringMaybeAliased(
+    target = stream->WriteBytesMaybeAliased(
         3, this->_internal_filehash(), target);
   }
 
@@ -632,10 +627,10 @@ size_t FileInfo::ByteSizeLong() const {
         this->_internal_filename());
   }
 
-  // string filehash = 3;
+  // bytes filehash = 3;
   if (this->filehash().size() > 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
         this->_internal_filehash());
   }
 

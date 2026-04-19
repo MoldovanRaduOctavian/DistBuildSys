@@ -8,7 +8,7 @@ package distbuild;
 message FileInfo {
   string filename = 1;
   uint64 filesize = 2;
-  string filehash = 3;
+  bytes filehash = 3;
 }
 
 /*

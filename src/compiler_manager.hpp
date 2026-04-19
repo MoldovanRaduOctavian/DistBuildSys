@@ -2,6 +2,7 @@
 #define COMPILER_MANAGER_HPP
 
 #include <condition_variable>
+#include <iostream>
 #include <queue>
 #include <thread>
 #include <vector>
@@ -49,7 +50,11 @@ public:
         size_t thread_pool_sz
         ) :
         _thread_pool_sz(thread_pool_sz)
-    {};
+    {
+        for (size_t th_idx = 0; th_idx < thread_pool_sz; ++th_idx) {
+            _worker_threads.emplace_back([this]{_worker_loop();});
+        }
+    };
     
     ~CompilerManager() {
         {
@@ -70,6 +75,7 @@ public:
     {
         std::unique_lock<std::mutex> lock(_mtx);
         _compile_task_queue.push(compilation_rqst);
+        _cv.notify_one();
 
     }
     

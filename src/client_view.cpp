@@ -9,7 +9,6 @@
 
 #include "distbuild_messages.pb.h"
 #include "file_state_view.hpp"
-#include "proto_io.hpp"
 #include "server_session.hpp"
 
 
@@ -61,7 +60,8 @@ FileStateView & ClientView::add_file_state
     const std::string & file_sha1
     )
 {
-    std::lock_guard<std::mutex> lock(_mtx);
+    // I can't lock the mutex in here, lovely
+    // std::lock_guard<std::mutex> lock(_mtx);
     auto file_state_pair = _client_file_states.find(client_path);
     if (file_state_pair != _client_file_states.end()
         && file_state_pair->second.file_sha1 == file_sha1
@@ -71,6 +71,9 @@ FileStateView & ClientView::add_file_state
         return file_state_pair->second;
     }
     
+    
+    std::string server_file_path = 
+        cnvt_client_to_server_path(_current_working_dir, client_path);
 
     // Add a new FileStateView 
     // Horrible variable naming
@@ -79,7 +82,7 @@ FileStateView & ClientView::add_file_state
         client_path,
         file_sz_bytes,          
         file_sha1,
-        cnvt_client_to_server_path(_current_working_dir, client_path)    
+        server_file_path
         );
     
     return file_state_it->second;
@@ -106,14 +109,21 @@ void ClientView::add_session
             std::move(session_socket),
             this,
             compiler_manager,
-            session_uuid
+            session_uuid,
+            session_start_msg
             );
        
         for (const distbuild::FileInfo & file_info : session_start_msg.required_files_info()) {
             // The client view holds a reference to all the files, from sessions
-            FileStateView & new_file_state = 
-                add_file_state(file_info.filename(), file_info.filesize(), file_info.filehash()); 
-            session_it->second.add_required_file_state(new_file_state);
+            if (!file_info.filename().empty()) {
+                FileStateView & new_file_state = 
+                    add_file_state(file_info.filename(), file_info.filesize(), file_info.filehash()); 
+                session_it->second.add_required_file_state(new_file_state);
+
+            }
+            else {
+                std::cout << "DO WE GET EMPTY file_info s OFTEN?!?!\n";
+            }
 
         }
     
@@ -153,7 +163,7 @@ void ClientView::add_session
                     ).count();
                 
                 std::string file_client_path = 
-                    _cnvt_server_to_client_path(_current_working_dir, updated_file_state.server_file_path);
+                    cnvt_server_to_client_path(_current_working_dir, updated_file_state.server_file_path);
 
                 update_file_state
                     (
@@ -176,7 +186,7 @@ void ClientView::add_session
                 // This seems tricky to handle
                 requested_files_client_paths.emplace_back
                     (
-                    _cnvt_server_to_client_path(_current_working_dir, file_info->server_file_path)
+                    cnvt_server_to_client_path(_current_working_dir, file_info->server_file_path)
                     );
                 break;
             }

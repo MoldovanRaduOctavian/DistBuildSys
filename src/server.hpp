@@ -2,6 +2,7 @@
 #define SERVER_HPP
 
 #include <boost/asio.hpp>
+#include <boost/asio/detached.hpp>
 #include <google/protobuf/message.h>
 
 #include "compiler_manager.hpp"
@@ -22,17 +23,31 @@ public:
         _io_ctx(io_ctx),
         _tcp_acceptor
             (
-            io_ctx,
-            boost::asio::ip::tcp::endpoint
-                (
-                boost::asio::ip::make_address(server_ip),
-                server_port
-                )
+            io_ctx
             ),
         _compiler_manager(8),
         _server_ip(server_ip),
         _server_port(server_port)
-    {};
+    {
+        // _tcp_acceptor.set_option(boost::asio::socket_base::reuse_address(true));
+
+            
+    };
+    
+    void start_server() {
+        boost::asio::ip::tcp::endpoint endpoint
+            (
+            boost::asio::ip::make_address(_server_ip),
+            _server_port
+            );
+        
+        _tcp_acceptor.open(endpoint.protocol());
+        _tcp_acceptor.set_option(boost::asio::socket_base::reuse_address(true));
+        _tcp_acceptor.bind(endpoint);
+        _tcp_acceptor.listen();
+
+        boost::asio::co_spawn( _io_ctx, listen_for_connections(), boost::asio::detached);
+    }
 
     boost::asio::awaitable<void> listen_for_connections(); 
 

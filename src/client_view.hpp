@@ -46,7 +46,8 @@ public:
     {
         std::lock_guard<std::mutex> lock(_mtx);
         auto file_state_it = _client_file_states.find(client_path);
-        if (file_state_it != _client_file_states.end()) {
+        
+        if (file_state_it == _client_file_states.end()) {
             return nullptr;
         }
 
@@ -88,7 +89,9 @@ public:
     void try_compile_for_active_sessions();
 
     const std::string & get_curr_working_dir() const {
-        std::lock_guard<std::mutex> lock(_mtx);
+        // This already produced a deadlock
+        // We should use shared_lock when reading, most likely
+        // std::lock_guard<std::mutex> lock(_mtx);
         return _current_working_dir;
     }
     

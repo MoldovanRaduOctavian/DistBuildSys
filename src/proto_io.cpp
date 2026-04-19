@@ -31,5 +31,29 @@ boost::asio::awaitable<void> send_msg
 }   
 */
 
+boost::asio::awaitable<void> send_msg
+    (
+    boost::asio::ip::tcp::socket &      socket,
+    const google::protobuf::Message &   msg
+    )
+{
+    std::string payload;
+    msg.SerializeToString(&payload);
+
+    uint32_t sz = htonl(payload.size());
+    auto buffer = std::make_shared<std::string>();
+    buffer->resize(sizeof(uint32_t) + payload.size());
+
+    memcpy(buffer->data(), &sz, sizeof(uint32_t));
+    memcpy(buffer->data() + sizeof(uint32_t), payload.data(), payload.size());
+
+    co_await boost::asio::async_write(
+        socket,
+        boost::asio::buffer(*buffer),
+        boost::asio::use_awaitable
+    );
+
+}
+
 }
 

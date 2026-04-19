@@ -31,13 +31,17 @@ public:
         ClientView *            parent_client_view,
         CompilerManager *       compiler_manager,
         const boost::uuids::uuid &   
-                                session_uuid 
+                                session_uuid,
+        const distbuild::ClientSessionStartRequest &
+                                session_start_rqst
         ) :
         _session_socket(std::move(session_socket)),
         _compiler_manager(compiler_manager),
         _parent_client_view(parent_client_view),
         _session_uuid(session_uuid),
-        _current_working_dir(parent_client_view->get_curr_working_dir())
+        _current_working_dir(parent_client_view->get_curr_working_dir()),
+        _in_src_file(session_start_rqst.client_source_file()),
+        _compiler_name(session_start_rqst.client_compiler())
     {};
    
     void add_required_file_state
@@ -65,13 +69,11 @@ public:
     
     boost::uuids::uuid get_session_uuid() const
     {
-        std::lock_guard<std::mutex> lock(_mtx);
         return _session_uuid;    
     }
     
     const std::string & get_curr_working_dir() const
     {
-        std::lock_guard<std::mutex> lock(_mtx);
         return _current_working_dir;
     }
      

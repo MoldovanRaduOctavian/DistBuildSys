@@ -78,26 +78,24 @@ inline std::string cnvt_client_to_server_path
             || path.starts_with("/Library");
     };
     
-    if (is_system_path(client_path)) {
-        return client_path;
-    }
-
+    // Pay a lot of attention to this
     return is_system_path(client_path)
         ? client_path
         : std::filesystem::path(
             std::filesystem::path(current_working_dir)
-            / client_path
+            / std::filesystem::path(client_path).relative_path()
         ).string();
 
 }   /* cnvt_client_to_server_path() */
 
 
-inline std::string _cnvt_server_to_client_path
+inline std::string cnvt_server_to_client_path
     (
     const std::string & current_working_dir,
     const std::string & server_path
     ) 
 {
+
     return server_path.starts_with(current_working_dir)
         ? server_path.substr(current_working_dir.size()) 
         : server_path;   

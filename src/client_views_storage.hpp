@@ -51,6 +51,9 @@ public:
         const std::string & client_uuid
         )
     {
+        // For each function that only reads the data of the class
+        // we could use shared_lock to allow for multiple readers
+        // Using lock_guard everywhere is overly pessimistic
         std::lock_guard<std::mutex> lock(_mtx);
         auto client_view_pair = _client_views.find(client_uuid);
         if (client_view_pair == _client_views.end()) {

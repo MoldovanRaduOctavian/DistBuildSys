@@ -248,13 +248,13 @@ class FileInfo PROTOBUF_FINAL :
   std::string* _internal_mutable_filename();
   public:
 
-  // string filehash = 3;
+  // bytes filehash = 3;
   void clear_filehash();
   const std::string& filehash() const;
   void set_filehash(const std::string& value);
   void set_filehash(std::string&& value);
   void set_filehash(const char* value);
-  void set_filehash(const char* value, size_t size);
+  void set_filehash(const void* value, size_t size);
   std::string* mutable_filehash();
   std::string* release_filehash();
   void set_allocated_filehash(std::string* filehash);
@@ -2570,7 +2570,7 @@ inline void FileInfo::set_filesize(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   // @@protoc_insertion_point(field_set:distbuild.FileInfo.filesize)
 }
 
-// string filehash = 3;
+// bytes filehash = 3;
 inline void FileInfo::clear_filehash() {
   filehash_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
 }
@@ -2606,7 +2606,7 @@ inline void FileInfo::set_filehash(const char* value) {
               GetArena());
   // @@protoc_insertion_point(field_set_char:distbuild.FileInfo.filehash)
 }
-inline void FileInfo::set_filehash(const char* value,
+inline void FileInfo::set_filehash(const void* value,
     size_t size) {
   
   filehash_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
