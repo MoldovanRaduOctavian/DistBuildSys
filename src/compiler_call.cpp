@@ -1,8 +1,11 @@
 #include "compiler_call.hpp"
 
 #include <chrono>
+#include <iostream>
+#include <mutex>
 #include <ranges>
 
+#include "includes_rework.hpp"
 
 bool CompilerCall::initialize_compiler_call
     (
@@ -12,8 +15,10 @@ bool CompilerCall::initialize_compiler_call
                             cmd_line_contents   /* each element of the compiler call */    
     )
 {   
+    std::lock_guard<std::mutex> lock(_mtx);
     _call_id = 0;
     _call_creation_time = std::chrono::system_clock::now();
+    _current_working_dir = compiler_call_directory;
 
     auto get_next_arg = [&](const size_t idx) -> std::pair<bool, std::string> {
         if (idx + 1 < cmd_line_contents.size()) {
@@ -168,5 +173,37 @@ bool CompilerCall::initialize_compiler_call
     return true;
 
 }   /* CompilerCall::initialize_compiler_call() */
+
+
+std::vector<IncludeInfo> CompilerCall::collect_src_file_dependencies
+    (
+    const CmdLineIncludeDirs & 
+                        system_include_dirs
+    )
+{   
+    _cmd_line_include_dirs.append_include_dirs(system_include_dirs);
+    SourceFileParser src_file_parser(_cmd_line_include_dirs, *_includes_cache); 
+    
+    if ( src_file_parser.parse_source_file_includes
+        (
+        _input_src_file,
+        _cmd_line_include_dirs.dash_i
+        ) == false ) {
+        std::cout << "PARSING A SOURCE FILE INCLUDE HAS FAILED\n";
+        return std::vector<IncludeInfo>{};
+    }
+    
+    std::unordered_map<std::string, IncludeInfo> &
+        parser_includes_map = src_file_parser.get_include_directives();     
+
+    std::vector<IncludeInfo> include_dependencies;
+    include_dependencies.reserve(parser_includes_map.size());
+    for (auto & [_, include_info] : parser_includes_map) {
+        include_dependencies.push_back(std::move(include_info));
+    }    
+    
+    return include_dependencies;    
+
+}   /* CompilerCall::collect_src_file_dependencies() */
 
 

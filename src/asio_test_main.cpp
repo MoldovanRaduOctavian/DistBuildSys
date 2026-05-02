@@ -27,13 +27,13 @@ int main(int argc, char ** argv) {
         }
     }
      
-    else if (argc == 2 && std::strcmp(argv[1], "client") == 0) {
+    else if (argc == 3 && std::strcmp(argv[1], "client") == 0) {
         std::cout << "Welcome to the client!\n";
-        Client client(io_ctx, "127.0.0.1", 8082);
+        Client client(io_ctx);
         boost::asio::co_spawn
             (
             io_ctx,
-            client.connect_to_server(),
+            client.connect_to_server("127.0.0.1", 8082),
             boost::asio::detached
             );
 

@@ -71,7 +71,7 @@ int main() {
     // auto                    res_adv = 
     //     ResourceAdvertisementService(io_ctx);
         
-    CmdLineIncludeDirs  cmd_line_includes_1{"clang"};
+    // CmdLineIncludeDirs  cmd_line_includes_1{"clang"};
     IncludesCache       includes_cache;
     
     /*
@@ -103,7 +103,7 @@ int main() {
     */    
 
     // I suppose this works well enough for now
-    CompilerCall compiler_call(includes_cache, cmd_line_includes_1);
+    CompilerCall compiler_call(includes_cache);
     compiler_call.initialize_compiler_call
         (
         "/home/radu/distbuild/artifacts", 

@@ -85,7 +85,7 @@ static bool requires_inc_storage
 }
 
 
-bool CmdLineIncludeDirs::_find_system_includes
+bool CmdLineIncludeDirs::find_system_includes
     (
     const std::string &     compiler
     )

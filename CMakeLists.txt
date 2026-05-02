@@ -43,6 +43,7 @@ add_executable(distbuild_daemon
     src/source_storage.cpp
     src/object_storage.cpp
     src/client.cpp
+    src/client_session.cpp
     src/server.cpp
     src/server_session.cpp
     src/proto_io.cpp
@@ -63,6 +64,7 @@ target_link_libraries(distbuild_daemon
 
 add_executable(asio_test 
     src/client.cpp
+    src/client_session.cpp
     src/server.cpp
     src/server_session.cpp
     src/proto_io.cpp

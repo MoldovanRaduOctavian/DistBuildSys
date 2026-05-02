@@ -28,11 +28,7 @@ public:
         _compiler_manager(8),
         _server_ip(server_ip),
         _server_port(server_port)
-    {
-        // _tcp_acceptor.set_option(boost::asio::socket_base::reuse_address(true));
-
-            
-    };
+    {};
     
     void start_server() {
         boost::asio::ip::tcp::endpoint endpoint

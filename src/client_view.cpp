@@ -120,10 +120,7 @@ void ClientView::add_session
                     add_file_state(file_info.filename(), file_info.filesize(), file_info.filehash()); 
                 session_it->second.add_required_file_state(new_file_state);
 
-            }
-            else {
-                std::cout << "DO WE GET EMPTY file_info s OFTEN?!?!\n";
-            }
+            } 
 
         }
     
@@ -218,11 +215,15 @@ void ClientView::add_session
 }   /* ClientView::add_session() */
 
 
-void ClientView::try_compile_for_active_sessions() {
+void ClientView::try_compile_for_active_sessions
+    (
+    bool lock_session_mtx
+    ) 
+{
     
     std::lock_guard<std::mutex> lock(_mtx);
     for (auto & [_, session] : _associated_sessions) {
-        session.try_request_src_compilation();
+        session.try_request_src_compilation(lock_session_mtx);
     }
 
 }   /* ClientView::try_compile_for_active_sessions() */

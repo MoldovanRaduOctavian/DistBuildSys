@@ -3,6 +3,7 @@
 
 #include <array>
 #include <chrono>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -32,23 +33,22 @@ private:
                                                     = "-include";
     static constexpr std::array SUPPORTED_COMPILERS = 
         {
-        std::string_view{"clang"},
-        std::string_view{"clang++"},
-        std::string_view{"gcc"},
-        std::string_view{"g++"},
-        std::string_view{"/usr/bin/c++"}
+        std::string_view{"/usr/bin/clang"},
+        std::string_view{"/usr/bin/clang++"},
+        std::string_view{"/usr/bin/gcc"},
+        std::string_view{"/usr/bin/g++"},
         };
 
     uint64_t            _call_id;
-    IncludesCache &     _includes_cache;
-    CmdLineIncludeDirs &
-                        _cmd_line_include_dirs;
+    IncludesCache *     _includes_cache;
+    CmdLineIncludeDirs  _cmd_line_include_dirs;
 
     std::chrono::system_clock::time_point
                         _call_creation_time;
     std::chrono::system_clock::duration
                         _call_resolution_duration;
     CallType            _compiler_call_type;
+    std::string         _current_working_dir;
     std::string         _input_src_file;
     std::string         _output_obj_file;
     std::string         _compiler_type;    
@@ -58,20 +58,56 @@ private:
     std::string         _stdout_content;
     std::string         _stderr_content;
     int                 _exit_code;
+    
+    mutable std::mutex  _mtx;
 
 public:
+    CallType get_compiler_call_type() const {
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _compiler_call_type;
+    }
+
+    const std::string & get_current_working_dir() const { 
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _current_working_dir;
+    }
+
+    const std::string & get_input_src_file() const { 
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _input_src_file;
+    }
+   
+    const std::string & get_output_obj_file() const { 
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _output_obj_file;
+    }
+    
+    const std::string & get_compiler_type() const { 
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _compiler_type;
+    }
+
+    const std::vector<std::string> & get_cmd_line_args() const {
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _cmd_line_args;
+    }
+    
+    const CmdLineIncludeDirs & get_cmd_line_include_dirs() const {
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _cmd_line_include_dirs;    
+    }
+
     CompilerCall
         (
-        IncludesCache &     includes_cache,
-        CmdLineIncludeDirs &
-                            cmd_line_include_dirs
+        IncludesCache &     includes_cache
         ) :
         _call_id(0),
-        _includes_cache(includes_cache),
-        _cmd_line_include_dirs(cmd_line_include_dirs),
+        _includes_cache(&includes_cache),
+        _cmd_line_include_dirs(),
         _call_creation_time(std::chrono::system_clock::now()),
         _call_resolution_duration(),
         _compiler_call_type(CallType::CALL_TYPE_COUNT),
+        _current_working_dir(),
         _input_src_file(),
         _compiler_type(),
         _cmd_line_args(),
@@ -79,13 +115,19 @@ public:
         _stderr_content(),
         _exit_code(0)
         {};
-    
+
     bool initialize_compiler_call
         (
         const std::string &     compiler_call_directory, 
                                                     /* cwd where the compiler was called */
         const std::vector<std::string> &     
                                 cmd_line_contents   /* each element of the compiler call */    
+        );
+    
+    std::vector<IncludeInfo> collect_src_file_dependencies
+        (
+        const CmdLineIncludeDirs & 
+                            system_include_dirs
         );
 
 };

@@ -1,6 +1,8 @@
 #ifndef OBJECT_STORAGE_HPP
 #define OBJECT_STORAGE_HPP
 
+#include <filesystem>
+
 #include "lru_storage.hpp"
 
 class ObjectStorage {
@@ -23,7 +25,9 @@ public:
 
     ObjectStorage() :
         _obj_files(OBJ_STORE_CAPACITY_BYTES)
-    {};
+    {
+        std::filesystem::create_directories(OBJ_STORE_PATH);
+    };
 
 };
 

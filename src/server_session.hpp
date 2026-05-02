@@ -100,7 +100,7 @@ public:
                                 compiler_idirs
         );
     
-    void try_request_src_compilation();
+    void try_request_src_compilation(bool lock_mtx = false);
     
     void publish_compilation_results
         (

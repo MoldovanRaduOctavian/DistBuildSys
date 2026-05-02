@@ -64,6 +64,12 @@ void ServerSession::preprocess_compiler_call
                     boost::uuids::to_string(_parent_client_view->get_client_id()), 
                     boost::uuids::to_string(_session_uuid)
                     );
+    
+    // Create the obj store in here until we enable the cache
+    std::filesystem::create_directories
+        (
+        std::filesystem::path(_out_obj_file).parent_path()
+        );
 
     _cmd_line_args.clear();
     for (size_t idir_idx = 0; idir_idx < compiler_idirs.size(); idir_idx += 2) {
@@ -86,28 +92,50 @@ void ServerSession::preprocess_compiler_call
 }   /* ServerSession::preprocess_compiler_call() */
 
 
-void ServerSession::try_request_src_compilation() {
+void ServerSession::try_request_src_compilation(bool lock_mtx) {
     
     // Be really careful about staying thread safe while accessing file data 
     // THIS CAUSES A DEADLOCK...DANGEROUS SITUATION
-    // std::lock_guard<std::mutex> lock(_mtx);
-    for (const FileStateView * required_file : _required_files_state) {
-        if (required_file->file_status != FileStateView::Status::FILE_STATUS_AVAILABLE) {
-            // Not all files necessary for compilation have been uploaded
-            std::cout << "NOT ALL FILES ARE UPLOADED\n";
-            return;
+    if (lock_mtx) { 
+        std::lock_guard<std::mutex> lock(_mtx);
+        for (const FileStateView * required_file : _required_files_state) {
+            if (required_file->file_status != FileStateView::Status::FILE_STATUS_AVAILABLE) {
+                // Not all files necessary for compilation have been uploaded
+                return;
+            }
         }
-    }
-    
-    if (_is_compiler_running == false) {
-        // Launch a compiler call thread
-        // The compiler manager has a thread pool
-        _compiler_manager->add_compilation_request(CompilationRequest{
-            this, _compiler_name, _cmd_line_args, _current_working_dir
-        });
+        
+        if (_is_compiler_running == false) {
+            // Launch a compiler call thread
+            // The compiler manager has a thread pool
+            _compiler_manager->add_compilation_request(CompilationRequest{
+                this, _compiler_name, _cmd_line_args, _current_working_dir
+            });
 
-        _is_compiler_running = true;
+            _is_compiler_running = true;
+        }
+
+    }    
+    else {
+        for (const FileStateView * required_file : _required_files_state) {
+            if (required_file->file_status != FileStateView::Status::FILE_STATUS_AVAILABLE) {
+                // Not all files necessary for compilation have been uploaded
+                return;
+            }
+        }
+        
+        if (_is_compiler_running == false) {
+            // Launch a compiler call thread
+            // The compiler manager has a thread pool
+            _compiler_manager->add_compilation_request(CompilationRequest{
+                this, _compiler_name, _cmd_line_args, _current_working_dir
+            });
+
+            _is_compiler_running = true;
+        }
+
     }
+
 
 }   /* ServerSession::request_src_compilation() */
 
@@ -124,95 +152,15 @@ void ServerSession::publish_compilation_results
         _compiler_stderr = compilation_out.stderr_data;
         _compile_duration = compilation_out.compiling_duration;
     }
-
+    
     // We should now be able to send a the compiled object
     // file to the client
     // This is where we send out the object file by chunks 
+
     send_compilation_result();
 
 }   /* ServerSession::publish_compilation_results() */
 
-/*
-void ServerSession::send_compilation_result() {
-    
-    if (_compiler_exit_code != 0) {
-        // Handle the case in which compilation has failed
-        distbuild::ServerMessage fail_obj_file_response{};
-        {
-            std::lock_guard<std::mutex> lock(_mtx);
-            fail_obj_file_response.mutable_obj_file_chunk_transmit()
-                ->set_session_id(boost::uuids::to_string(_session_uuid));
-            fail_obj_file_response.mutable_obj_file_chunk_transmit()
-                ->set_compiler_exit_code(_compiler_exit_code);
-            fail_obj_file_response.mutable_obj_file_chunk_transmit()
-                ->set_compiler_call_duration(_compile_duration);
-            fail_obj_file_response.mutable_obj_file_chunk_transmit()
-                ->set_compiler_stdout(_compiler_stdout);
-            fail_obj_file_response.mutable_obj_file_chunk_transmit()
-                ->set_compiler_stderr(_compiler_stderr);
-            fail_obj_file_response.mutable_obj_file_chunk_transmit()
-                ->set_filesize(0);
-            fail_obj_file_response.mutable_obj_file_chunk_transmit()
-                ->set_is_last_chunk(true);
-        }
-
-        // Sending from multiple threads is inherently dangerous
-        // co_await proto_io::send_msg(_session_socket, fail_obj_file_response);
-        send_msg(fail_obj_file_response);
-    }
-    
-    else {
-        // Send out the object file in chunks...
-        std::ifstream obj_file_stream(_out_obj_file, std::ios::binary);
-        uint64_t obj_file_sz = std::filesystem::file_size(_out_obj_file);
-        
-        // THE MESSAGE BUILDING IS WRONG
-        const size_t OBJ_CHUNK_SZ = 64 * 1024;
-        std::vector<char> chunk_buff(OBJ_CHUNK_SZ);
-        while (obj_file_stream.read(chunk_buff.data(), OBJ_CHUNK_SZ)
-               || obj_file_stream.gcount())
-        {
-            distbuild::ServerMessage obj_file_response{};
-            {
-                std::lock_guard<std::mutex> lock(_mtx);
-                obj_file_response.mutable_obj_file_chunk_transmit()
-                    ->set_session_id(boost::uuids::to_string(_session_uuid));
-                obj_file_response.mutable_obj_file_chunk_transmit()
-                    ->set_filesize(obj_file_sz);
-                obj_file_response.mutable_obj_file_chunk_transmit()
-                    ->set_compiler_exit_code(_compiler_exit_code);
-                obj_file_response.mutable_obj_file_chunk_transmit()
-                    ->set_compiler_call_duration(_compile_duration);
-
-                if (obj_file_stream.gcount() < OBJ_CHUNK_SZ) {
-                    obj_file_response.mutable_obj_file_chunk_transmit()
-                        ->set_data(chunk_buff.data(), obj_file_stream.gcount());
-                    obj_file_response.mutable_obj_file_chunk_transmit()
-                        ->set_compiler_stdout(_compiler_stdout);
-                    obj_file_response.mutable_obj_file_chunk_transmit()
-                        ->set_compiler_stderr(_compiler_stderr);
-                    obj_file_response.mutable_obj_file_chunk_transmit()
-                        ->set_is_last_chunk(true);
-                }
-                else {
-                    obj_file_response.mutable_obj_file_chunk_transmit()
-                        ->set_data(chunk_buff.data(), obj_file_stream.gcount());
-                    obj_file_response.mutable_obj_file_chunk_transmit()
-                        ->set_compiler_stdout(_compiler_stdout);
-                    obj_file_response.mutable_obj_file_chunk_transmit()
-                        ->set_is_last_chunk(false);
-                }
-
-            }            
-            
-            // co_await proto_io::send_msg(_session_socket, obj_file_response);
-            send_msg(obj_file_response);
-            chunk_buff.clear();
-        }
-    }
-
-} 
-*/
 
 void ServerSession::send_compilation_result()
 {
@@ -221,7 +169,7 @@ void ServerSession::send_compilation_result()
     auto build_msg = [&]() -> distbuild::ServerMessage {
         distbuild::ServerMessage msg;
 
-        auto* chunk = msg.mutable_obj_file_chunk_transmit();
+        auto * chunk = msg.mutable_obj_file_chunk_transmit();
         chunk->set_session_id(boost::uuids::to_string(_session_uuid));
         chunk->set_compiler_exit_code(_compiler_exit_code);
         chunk->set_compiler_call_duration(_compile_duration);
@@ -269,7 +217,7 @@ void ServerSession::send_compilation_result()
             break;
 
         distbuild::ServerMessage msg = build_msg();
-        auto* chunk = msg.mutable_obj_file_chunk_transmit();
+        auto * chunk = msg.mutable_obj_file_chunk_transmit();
 
         chunk->set_filesize(file_size);
         chunk->set_data(buffer.data(), bytes_read);
@@ -285,6 +233,9 @@ void ServerSession::send_compilation_result()
 
         send_msg(msg);
     }
+
+    std::cout << "This is after the obj file was sent!!!\n";
+
 }
 
 
@@ -296,16 +247,10 @@ boost::asio::awaitable<void> ServerSession::handle_session() {
         co_await proto_io::receive_msg(_session_socket, client_message);
         switch (client_message.content_case()) {
             case distbuild::ClientMessage::kSessionStart:
-                // Do nothing
-                // Every time we receive a packet from a client, update its 
-                // last active timestamp
                 _parent_client_view->update_last_active_ts();
                 break;
+
             case distbuild::ClientMessage::kFileChunkUpload: {
-                // Do we use co_await for this, or co_spawn ?
-                // Calling read from multiple threads is really
-                // dangerous apparently
-                // this does not allow concurrent file uploading either
                 _parent_client_view->update_last_active_ts();
 
                 auto file_chunk_msg = 
@@ -314,7 +259,6 @@ boost::asio::awaitable<void> ServerSession::handle_session() {
                         client_message.file_chunk_upload()    
                         );
                 
-                std::cout << "I HOPE WE GET TO CHUNK PROCESSING!\n";
                 std::cout << "Received filename: " << file_chunk_msg->filename() << '\n';
 
                 // Does file_chunk_msg get invalidated by the time it
@@ -328,7 +272,6 @@ boost::asio::awaitable<void> ServerSession::handle_session() {
                         );
                     
                     // Sending messages on multiple threads is inherently dangerous
-                    // co_await proto_io::send_msg(_session_socket, session_abort_msg);
                     send_msg(session_abort_msg);
 
                 }
@@ -417,6 +360,8 @@ bool ServerSession::process_file_chunk
     if (transfer_state.is_finished == true) {
         // The file was either uploaded or failed
         // exit early
+
+        // We need to do some extra things in here
         return true;
     }
      
@@ -428,14 +373,6 @@ bool ServerSession::process_file_chunk
 //     || file_chunk_msg->filename() != client_filename
     )
     {
-        std::cout << "Failed validity comparisons: \n";
-        std::cout << "Sequence no:" << file_chunk_msg->sequence_no() 
-                << " " << transfer_state.last_seq_no + 1 << '\n';        
-        std::cout << "Offset:" << file_chunk_msg->offset() 
-                << " " << transfer_state.last_offset << '\n';
-        std::cout << "Filename:" << file_chunk_msg->filename() 
-                << " " << client_filename << '\n';
-
         transfer_state.is_finished = true;
         transfer_state.file_out_stream.close();
         // The session will be stopped on chunk upload failure
@@ -446,13 +383,11 @@ bool ServerSession::process_file_chunk
             FileStateView::Status::FILE_STATUS_FAULT
             );
 
-        std::cout << "VIATA MEA OF IMPART ALATURI DE VOLUNTARI [2]!\n";
         return false;
     }
     
     transfer_state.last_offset = file_chunk_msg->offset();
-    transfer_state.last_seq_no = file_chunk_msg->sequence_no();
-    
+    transfer_state.last_seq_no = file_chunk_msg->sequence_no();    
     transfer_state.file_out_stream.write(file_chunk_msg->data().data(), file_chunk_msg->data().size());
 
     if (file_chunk_msg->is_last_chunk()) {
@@ -471,8 +406,6 @@ bool ServerSession::process_file_chunk
                 FileStateView::Status::FILE_STATUS_FAULT
                 );
             
-
-            std::cout << "VIATA MEA OF IMPART ALATURI DE VOLUNTARI [3]!\n";
             return false;
 
         }
@@ -496,10 +429,8 @@ bool ServerSession::process_file_chunk
                 FileStateView::Status::FILE_STATUS_FAULT
                 );
             
-            std::cout << "VIATA MEA OF IMPART ALATURI DE VOLUNTARI [4]!\n";
             return false;
         }    
-
 
         set_file_state
             (
@@ -508,8 +439,6 @@ bool ServerSession::process_file_chunk
             FileStateView::Status::FILE_STATUS_AVAILABLE
             );
         
-        // This seems to be blocking for some reasons
-        // This causes a deadlock
         _parent_client_view->try_compile_for_active_sessions();
 
         // DO NOT FORGET TO SEND A FILE COMPLETE MESSAGE BACK TO THE CLIENT
@@ -518,9 +447,6 @@ bool ServerSession::process_file_chunk
         file_up_complete_msg->set_session_id(session_uuid);
         file_up_complete_msg->set_filename(file_chunk_msg->filename());
         file_up_complete_msg->set_success(true);
-
-        std::cout << "FAC DERANJ: " << file_chunk_msg->filename() << '\n';
-
         send_msg(server_msg);
 
     }
@@ -565,7 +491,7 @@ boost::asio::awaitable<void> ServerSession::_writer_loop() {
     try {
         while (!_write_queue.empty()) {
             std::string & msg = _write_queue.front();
-
+            
             co_await boost::asio::async_write(
                 _session_socket,
                 boost::asio::buffer(msg),
@@ -576,8 +502,10 @@ boost::asio::awaitable<void> ServerSession::_writer_loop() {
         }
     }
     catch (std::exception & e) {
-        // How do we handle such exceptions ?
+        std::cout << e.what() << '\n';
     }
+
+    _write_in_progress = false;
 
 }   /* ServerSession::_writer_loop() */
 

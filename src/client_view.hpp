@@ -86,7 +86,7 @@ public:
         CompilerManager *   compiler_manager
         );
     
-    void try_compile_for_active_sessions();
+    void try_compile_for_active_sessions(bool lock_session_mtx = false);
 
     const std::string & get_curr_working_dir() const {
         // This already produced a deadlock

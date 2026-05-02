@@ -11,29 +11,78 @@
 
 using sha1_type = boost::uuids::detail::sha1::digest_type;
 
-// This is persistent throughout the 
-// lifetime of the program
-// Only gets populated once
-// Or does it get built for each compiler invocation?
 struct CmdLineIncludeDirs {
     std::vector<std::string> dash_i;
     std::vector<std::string> dash_isystem;
     std::vector<std::string> dash_iquote;
     std::vector<std::string> dash_include;
 
-    CmdLineIncludeDirs
-        (
-        const std::string &     compiler
-        )
-    {
-        _find_system_includes(compiler);
-    }
-
-private:
-    bool _find_system_includes
+    CmdLineIncludeDirs()
+    {};
+    
+    bool find_system_includes
         (
         const std::string &     compiler
         );
+
+    std::vector<std::string> cnvt_to_cmd_line_args() const {
+        std::vector<std::string> cmd_line_args;
+        for (const std::string & arg_i : dash_i) {
+            cmd_line_args.emplace_back("-I");
+            cmd_line_args.emplace_back(arg_i);
+        }
+
+        for (const std::string & arg_iquote : dash_iquote) {
+            cmd_line_args.emplace_back("-iquote");
+            cmd_line_args.emplace_back(arg_iquote);
+        }
+
+        for (const std::string & arg_isystem : dash_isystem) {
+            cmd_line_args.emplace_back("-isystem");
+            cmd_line_args.emplace_back(arg_isystem);
+        }
+
+        for (const std::string & args_include : dash_include) {
+            cmd_line_args.emplace_back("-include");
+            cmd_line_args.emplace_back(args_include);
+        }
+
+        return cmd_line_args;
+
+    }
+    
+    void append_include_dirs
+        (
+        const CmdLineIncludeDirs & other_include_dirs
+        )
+    {
+        dash_i.insert
+            (
+            dash_i.end(), 
+            other_include_dirs.dash_i.begin(),
+            other_include_dirs.dash_i.end()
+            );
+        dash_isystem.insert
+            (
+            dash_isystem.end(),
+            other_include_dirs.dash_isystem.begin(),
+            other_include_dirs.dash_isystem.end()
+            );
+        dash_iquote.insert
+            (
+            dash_iquote.end(),
+            other_include_dirs.dash_iquote.begin(),
+            other_include_dirs.dash_iquote.end()
+            );
+        dash_include.insert
+            (
+            dash_include.end(),
+            other_include_dirs.dash_include.begin(),
+            other_include_dirs.dash_include.end()
+            );
+
+    }
+
 };
 
 
@@ -181,8 +230,6 @@ public:
 // on every compiler invocation 
 // we will have to deal with loads of these in parallel
 
-// We could declare this as a unique ptr and transfer its ownership
-// on function exit
 class SourceFileParser {
        
     CmdLineIncludeDirs &        _system_include_dirs;
@@ -208,6 +255,12 @@ public:
         const std::vector<std::string> &
                             cmd_line_includes   /* includes specified in the cmd line?!?!   */
         );
+    
+    std::unordered_map<std::string, IncludeInfo> &
+        get_include_directives()
+    {
+        return _inc_directives;
+    }
 
 private:
     

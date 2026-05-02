@@ -89,3 +89,4 @@ private:
 };
 
 #endif /* CLIENT_VIEWS_STORAGE_HPP */
+
