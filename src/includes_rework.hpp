@@ -151,21 +151,31 @@ private:
     // This has to be renamed, this is not descriptive
     // Complete absolute path of include and include
     // directive content?
+    
+    CmdLineIncludeDirs &    _system_include_dirs;
 
     /* #include ... -> absolute path */
     std::unordered_map<std::string, std::string>
-                        _include_abs_paths;
+                            _include_abs_paths;
 
     std::unordered_map<std::string, IncludeInfo>
-                        _include_cache_data;
+                            _include_cache_data;
     
     // Store the paths that do not exist, to not check them again
     std::unordered_set<std::string>
-                        _does_not_exist;
+                            _does_not_exist;
 
-    mutable std::mutex  _mut;
+    mutable std::mutex      _mut;
 
 public:
+
+    IncludesCache
+        (
+        CmdLineIncludeDirs & system_include_dirs
+        ) :
+        _system_include_dirs(system_include_dirs)
+        {};
+
     void add_include_entry
         (
         const std::string & include_name,
@@ -178,6 +188,11 @@ public:
         _include_cache_data[include_name]   = include_info;
     }
     
+    const CmdLineIncludeDirs & get_sys_include_dirs() const {
+        std::lock_guard<std::mutex> lock(_mut);
+        return _system_include_dirs;
+    }
+
     const std::string * get_include_abs_path
         (
         const std::string & include_name

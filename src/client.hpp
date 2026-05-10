@@ -1,6 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include <memory>
 #include <unordered_map>
 
 #include <boost/asio.hpp>
@@ -48,7 +49,7 @@ private:
 
     CmdLineIncludeDirs              _system_include_dirs;
 
-    std::unordered_map<std::string, ClientSession>
+    std::unordered_map<std::string, std::unique_ptr<ClientSession>>
                                     _client_sessions;
 
 };

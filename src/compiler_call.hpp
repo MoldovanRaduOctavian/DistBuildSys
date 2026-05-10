@@ -62,6 +62,12 @@ private:
     mutable std::mutex  _mtx;
 
 public:
+
+    const IncludesCache * get_includes_cache() const {
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _includes_cache;
+    }
+
     CallType get_compiler_call_type() const {
         std::lock_guard<std::mutex> lock(_mtx);
         return _compiler_call_type;

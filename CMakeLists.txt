@@ -44,6 +44,8 @@ add_executable(distbuild_daemon
     src/object_storage.cpp
     src/client.cpp
     src/client_session.cpp
+    src/dep_files.cpp
+    src/compiler_call.cpp
     src/server.cpp
     src/server_session.cpp
     src/proto_io.cpp
@@ -63,16 +65,24 @@ target_link_libraries(distbuild_daemon
 )
 
 add_executable(asio_test 
+    src/asio_test_main.cpp
+    src/includes_rework.cpp
+    src/compiler_call.cpp
+    src/lru_storage.cpp
+    src/source_storage.cpp
+    src/object_storage.cpp
     src/client.cpp
     src/client_session.cpp
+    src/dep_files.cpp
+    src/compiler_call.cpp
     src/server.cpp
     src/server_session.cpp
     src/proto_io.cpp
     src/client_view.cpp
     src/client_views_storage.cpp
-    src/asio_test_main.cpp
     src/compiler_manager.cpp
-    src/distbuild_messages.pb.cc    
+    src/distbuild_messages.pb.cc
+
 )
 target_link_libraries(asio_test
     PRIVATE

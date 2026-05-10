@@ -72,7 +72,7 @@ int main() {
     //     ResourceAdvertisementService(io_ctx);
         
     // CmdLineIncludeDirs  cmd_line_includes_1{"clang"};
-    IncludesCache       includes_cache;
+    // IncludesCache       includes_cache;
     
     /*
     auto cold_cache_start = std::chrono::high_resolution_clock::now();
@@ -103,6 +103,7 @@ int main() {
     */    
 
     // I suppose this works well enough for now
+    /*
     CompilerCall compiler_call(includes_cache);
     compiler_call.initialize_compiler_call
         (
@@ -113,6 +114,7 @@ int main() {
         "CMakeFiles/distbuild_daemon.dir/src/daemon_main.cpp.o", "-c", 
         "/home/radu/distbuild/DistBuildSys/src/daemon_main.cpp"}
         );
+    */
 
     auto x = 3;
 

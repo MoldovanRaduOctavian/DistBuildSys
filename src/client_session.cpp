@@ -35,10 +35,22 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
             case distbuild::ServerMessage::kAllReqUpComplete:
                 // We do not even need this I think
                 break;
-            case distbuild::ServerMessage::kObjFileChunkTransmit:
+            case distbuild::ServerMessage::kObjFileChunkTransmit: {
                 // This is the most important one
-                break;
+                auto obj_chunk_msg = 
+                    std::make_shared<distbuild::ServerObjFileChunkResponse>(
+                        server_message.obj_file_chunk_transmit()
+                    );
 
+                bool obj_chunk_upload_success = _process_obj_file_chunk(obj_chunk_msg);
+                if (obj_chunk_upload_success == false) {
+                    // Handle failure gracefully
+                    // Fall back to local compilation
+                    // Cleanup the current session
+                }
+
+                break;
+            }
             default:
                 break;
         }
@@ -94,7 +106,8 @@ bool ClientSession::_process_obj_file_chunk
         // This is where you liquidate the client session
         // and the server session, and send the results
         // to the compiler wrapper by UNIX IPC socket
-
+        // We have to signal the client to publish the results
+        // through the UNIX IPC socket/sockets
     }
     
     return true;
