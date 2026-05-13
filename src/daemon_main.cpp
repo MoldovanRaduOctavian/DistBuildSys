@@ -106,45 +106,7 @@ int main() {
     auto client = Client(io_ctx);
     auto includes_cache = IncludesCache(client.get_system_include_dirs());    
     auto compiler_call = CompilerCall(includes_cache);
-    
-    /*
-    compiler_call.initialize_compiler_call
-        (
-        "/home/radu/distbuild/artifacts", 
-        {"/usr/bin/c++", "-DBOOST_ATOMIC_DYN_LINK", "-DBOOST_ATOMIC_NO_LIB", "-DBOOST_FILESYSTEM_DYN_LINK", 
-        "-g", "-Wall", "-Wextra", "-Wshadow", "-std=c++20", "-MD", "-MT", 
-        "CMakeFiles/distbuild_daemon.dir/src/daemon_main.cpp.o", "-o", 
-        "CMakeFiles/distbuild_daemon.dir/src/daemon_main.cpp.o", "-c", 
-        "/home/radu/distbuild/DistBuildSys/src/daemon_main.cpp"}
-        );
-    */
-    
-    // Either the dependency parser does NOT work properly
-    // Or the dep file generation does not work properly
-    /*
-    compiler_call.initialize_compiler_call
-        (
-        "/home/radu/distbuild/artifacts", 
-        {"/usr/bin/c++", "-DBOOST_ATOMIC_DYN_LINK", "-DBOOST_ATOMIC_NO_LIB", "-DBOOST_FILESYSTEM_DYN_LINK", 
-        "-g", "-Wall", "-Wextra", "-Wshadow", "-std=c++20", "-MD", "-MT", 
-        "CMakeFiles/distbuild_daemon.dir/src/dep_files.cpp.o", "-o", 
-        "CMakeFiles/distbuild_daemon.dir/src/dep_files.cpp.o", "-c", 
-        "/home/radu/distbuild/DistBuildSys/src/dep_files.cpp"}
-        );
-    */
-    
-    /*
-    compiler_call.initialize_compiler_call
-        (
-        "/home/radu/distbuild/artifacts", 
-        {"/usr/bin/clang++", "-DBOOST_ATOMIC_DYN_LINK", "-DBOOST_ATOMIC_NO_LIB", "-DBOOST_FILESYSTEM_DYN_LINK", 
-        "-g", "-Wall", "-Wextra", "-Wshadow", "-std=c++20", "-MD", "-MT", 
-        "CMakeFiles/distbuild_daemon.dir/src/includes_rework.cpp.o", "-o", 
-        "CMakeFiles/distbuild_daemon.dir/src/includes_rework.cpp.o", "-c", 
-        "/home/radu/distbuild/DistBuildSys/src/includes_rework.cpp"}
-        );
-    */
-
+     
     compiler_call.initialize_compiler_call
         (
         "/home/radu/distbuild/artifacts", 
@@ -154,11 +116,29 @@ int main() {
         "CMakeFiles/distbuild_daemon.dir/src/client_session.cpp.o", "-c", 
         "/home/radu/distbuild/DistBuildSys/src/client_session.cpp"}
         );
-    
-    std::string dep_file_path = client.test_handle_compiler_call(compiler_call);
-    std::cout << dep_file_path << '\n';
+     
+    auto cold_cache_start = std::chrono::high_resolution_clock::now();
 
-    auto x = 3;
+    std::string dep_file_path = client.test_handle_compiler_call(compiler_call);
+    // std::cout << dep_file_path << '\n';
+
+    auto cold_cache_duration = std::chrono::high_resolution_clock::now()
+        - cold_cache_start;
+
+    std::cout << "Cold cache duration: " 
+              << std::chrono::duration_cast<std::chrono::milliseconds>(cold_cache_duration) << '\n';
+
+    auto hot_cache_start = std::chrono::high_resolution_clock::now();
+
+    client.test_handle_compiler_call(compiler_call);
+
+    auto hot_cache_duration = std::chrono::high_resolution_clock::now()
+        - hot_cache_start;
+
+    std::cout << "Hot cache duration: " 
+              << std::chrono::duration_cast<std::chrono::milliseconds>(hot_cache_duration) << '\n';
+
+
 
     // So the caching does not work at all, fucking great
     // Debug that next, otherwise I think the detected

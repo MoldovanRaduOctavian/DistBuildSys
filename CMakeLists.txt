@@ -45,6 +45,7 @@ add_executable(distbuild_daemon
     src/client.cpp
     src/client_session.cpp
     src/dep_files.cpp
+    src/unix_ipc_socket.cpp
     src/compiler_call.cpp
     src/server.cpp
     src/server_session.cpp
@@ -74,6 +75,7 @@ add_executable(asio_test
     src/client.cpp
     src/client_session.cpp
     src/dep_files.cpp
+    src/unix_ipc_socket.cpp
     src/compiler_call.cpp
     src/server.cpp
     src/server_session.cpp
@@ -84,6 +86,7 @@ add_executable(asio_test
     src/distbuild_messages.pb.cc
 
 )
+
 target_link_libraries(asio_test
     PRIVATE
     Boost::system
@@ -93,4 +96,33 @@ target_link_libraries(asio_test
     spdlog::spdlog_header_only
     ${Protobuf_LIBRARIES}
 )
+
+add_executable(unix_ipc_server
+    src/unix_server_test.cpp
+)
+
+target_link_libraries(unix_ipc_server
+    PRIVATE
+    Boost::system
+    Boost::regex
+    Boost::filesystem
+    Threads::Threads
+    spdlog::spdlog_header_only
+    ${Protobuf_LIBRARIES}
+)
+
+add_executable(unix_ipc_client
+    src/unix_client_test.cpp
+)
+
+target_link_libraries(unix_ipc_client
+    PRIVATE
+    Boost::system
+    Boost::regex
+    Boost::filesystem
+    Threads::Threads
+    spdlog::spdlog_header_only
+    ${Protobuf_LIBRARIES}
+)
+
 
