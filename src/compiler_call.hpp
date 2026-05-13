@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "includes_rework.hpp"
+#include "dep_files.hpp"
+
 
 class CompilerCall {
 
@@ -33,6 +35,7 @@ private:
                                                     = "-include";
     static constexpr std::array SUPPORTED_COMPILERS = 
         {
+        std::string_view{"/usr/bin/c++"},
         std::string_view{"/usr/bin/clang"},
         std::string_view{"/usr/bin/clang++"},
         std::string_view{"/usr/bin/gcc"},
@@ -42,6 +45,7 @@ private:
     uint64_t            _call_id;
     IncludesCache *     _includes_cache;
     CmdLineIncludeDirs  _cmd_line_include_dirs;
+    DepFilesState       _dep_cmd_state;
 
     std::chrono::system_clock::time_point
                         _call_creation_time;
@@ -66,6 +70,11 @@ public:
     const IncludesCache * get_includes_cache() const {
         std::lock_guard<std::mutex> lock(_mtx);
         return _includes_cache;
+    }
+    
+    DepFilesState & get_dep_files_state() {
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _dep_cmd_state;
     }
 
     CallType get_compiler_call_type() const {

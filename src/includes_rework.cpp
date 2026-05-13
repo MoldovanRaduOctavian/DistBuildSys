@@ -91,12 +91,23 @@ bool CmdLineIncludeDirs::find_system_includes
     )
 {
     boost::process::ipstream    cc_stream;
+    
+    // Process search path will break
     boost::process::child       cc_proc(
-        boost::process::search_path(compiler)
+        compiler,
+        "-Wp,-v", "-x", 
+        "c++", "/dev/null", "-fsyntax-only",
+        boost::process::std_err > cc_stream
+    );
+    
+    /*
+    boost::process::child       cc_proc(
+        "/usr/bin/clang++"
         , "-Wp,-v", "-x", 
         "c++", "/dev/null", "-fsyntax-only",
         boost::process::std_err > cc_stream
     );
+    */
 
     boost::regex    inc_dir_regex(R"(^\s*(\/\S+))");
     boost::smatch   match;

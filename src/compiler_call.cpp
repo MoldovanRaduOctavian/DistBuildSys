@@ -19,7 +19,7 @@ bool CompilerCall::initialize_compiler_call
     _call_id = 0;
     _call_creation_time = std::chrono::system_clock::now();
     _current_working_dir = compiler_call_directory;
-
+    
     auto get_next_arg = [&](const size_t idx) -> std::pair<bool, std::string> {
         if (idx + 1 < cmd_line_contents.size()) {
             return std::make_pair(true, cmd_line_contents[idx + 1]);
@@ -99,6 +99,10 @@ bool CompilerCall::initialize_compiler_call
 
                     ++arg_idx;
                 }
+                else {
+                    _compiler_call_type = CallType::CALL_TYPE_COUNT;
+                    return false;
+                }
             }
             else if (cmd_line_contents[arg_idx] == ARG_DASH_ISYSTEM) {
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
@@ -108,6 +112,10 @@ bool CompilerCall::initialize_compiler_call
                     );
 
                     ++arg_idx;
+                }
+                else {
+                    _compiler_call_type = CallType::CALL_TYPE_COUNT;
+                    return false;
                 }
             }
             else if (cmd_line_contents[arg_idx] == ARG_DASH_IQUOTE) {
@@ -119,6 +127,10 @@ bool CompilerCall::initialize_compiler_call
 
                     ++arg_idx;
                 }
+                else {
+                    _compiler_call_type = CallType::CALL_TYPE_COUNT;
+                    return false;
+                }
             }
             else if (cmd_line_contents[arg_idx] == ARG_DASH_INCLUDE) {
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
@@ -129,6 +141,10 @@ bool CompilerCall::initialize_compiler_call
 
                     ++arg_idx;
                 }
+                else {
+                    _compiler_call_type = CallType::CALL_TYPE_COUNT;
+                    return false;
+                }
             }
             else if (cmd_line_contents[arg_idx] == ARG_DASH_O) {
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
@@ -136,7 +152,54 @@ bool CompilerCall::initialize_compiler_call
                     _output_obj_file = next_arg;
                     ++arg_idx;
                 }
-
+                else {
+                    _compiler_call_type = CallType::CALL_TYPE_COUNT;
+                    return false;
+                }
+            }
+            else if (cmd_line_contents[arg_idx] == "-MF") {
+                const auto & [status, next_arg] = get_next_arg(arg_idx);
+                if (status) {
+                    _dep_cmd_state.add_mf_flag_path(
+                        get_abs_path(compiler_call_directory, next_arg)
+                    );
+                    ++arg_idx;
+                }
+                else {
+                    _compiler_call_type = CallType::CALL_TYPE_COUNT;
+                    return false;
+                }
+            }
+            else if (cmd_line_contents[arg_idx] == "-MT") {
+                const auto & [status, next_arg] = get_next_arg(arg_idx);
+                if (status) {
+                    _dep_cmd_state.add_mt_flag_path(next_arg);
+                    ++arg_idx;
+                }
+                else {
+                    _compiler_call_type = CallType::CALL_TYPE_COUNT;
+                    return false;
+                }
+            }
+            else if (cmd_line_contents[arg_idx] == "-MQ") {
+                const auto & [status, next_arg] = get_next_arg(arg_idx);
+                if (status) {
+                    _dep_cmd_state.add_mq_flag_path(next_arg);
+                    ++arg_idx;
+                }
+                else {
+                    _compiler_call_type = CallType::CALL_TYPE_COUNT;
+                    return false;
+                }
+            }
+            else if (cmd_line_contents[arg_idx] == "-MD") {
+                _dep_cmd_state.set_md_flag_present(true);
+            }
+            else if (cmd_line_contents[arg_idx] == "-MMD") {
+                _dep_cmd_state.set_mmd_flag_present(true);
+            }
+            else if (cmd_line_contents[arg_idx] == "-MP") {
+                _dep_cmd_state.set_mp_flag_present(true);
             }
 
         }

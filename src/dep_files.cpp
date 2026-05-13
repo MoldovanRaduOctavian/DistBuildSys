@@ -1,5 +1,8 @@
 #include "dep_files.hpp"
 
+#include <iostream>
+
+#include "compiler_call.hpp"
 
 std::string DepFilesState::generate_dep_file
     (
@@ -26,8 +29,6 @@ std::string DepFilesState::generate_dep_file
     if (_mp_flag_present == true) {
         bool is_first = true;
         for (const std::string & dep_list_item : deps_list_root) {
-            // Use an empty std vector for these
-            // Whate is escapeMakefileSpaces ????
             if (is_first == false) {
                 dep_file.dep_targets.emplace_back
                     (
@@ -41,7 +42,7 @@ std::string DepFilesState::generate_dep_file
     }
 
     // Write dep file to file    
-    dep_file.write_to_file(std::filesystem::path(dep_file_path));
+    dep_file.write_to_file(dep_file_path);
     return dep_file_path;
 
 }   /* DepFileState::generate_dep_file() */
@@ -58,28 +59,26 @@ const std::vector<std::string> DepFilesState::_calculate_deps_for_headers
     std::vector<std::string> dep_file_names;
     std::vector<const IncludeInfo *> filtered_headers;
     if (_mmd_flag_present == true) {
-         filtered_headers = 
+        filtered_headers = 
             _ignore_system_headers
                 (
                 compiler_call.get_includes_cache()->get_sys_include_dirs(),
                 headers
                 );
     }
-    
-    std::string cwd = std::filesystem::current_path().string();
-    if (cwd.ends_with("/")) {
-        cwd += "/";
-    }
-    
-    auto get_relative_file_name = 
-        [this, &cwd](const std::string & file_name) -> std::string {
-            return _process_makefile_target(file_name.substr(cwd.size()));   
-        };
-    
+        
     dep_file_names.emplace_back(_process_makefile_target(compiler_call.get_input_src_file()));
-    for (const IncludeInfo * header : filtered_headers) {
-        dep_file_names.emplace_back(get_relative_file_name(header->file_path));
+    if (_mmd_flag_present == true) {
+        for (const IncludeInfo * header : filtered_headers) {
+            dep_file_names.emplace_back(_process_makefile_target(header->file_path));
+        }
     }
+    else {
+        for (const IncludeInfo * header : headers) {
+            dep_file_names.emplace_back(_process_makefile_target(header->file_path));
+        }
+    }
+    
 
     return dep_file_names;
 
@@ -91,34 +90,20 @@ std::string DepFilesState::_create_depfile_name
     const CompilerCall &    compiler_call
     ) const
 {
-
-    auto change_extension = 
-        [](const std::string & file_path,
-           const std::string & extension
-           ) -> std::string 
-    {
-        std::filesystem::path path(file_path);
-        path.replace_extension(extension);
-        return path.string();
-    };
-
+ 
     if (_mf_flag_path.empty() == false) {
         return _mf_flag_path;
     }
     
     if (compiler_call.get_output_obj_file().empty() == false) {
-        return change_extension(
-            compiler_call.get_output_obj_file(),
-            ".d"
-        );
         return std::filesystem::path(compiler_call.get_output_obj_file())
-            .replace_extension(".d")
+            .replace_extension(".o.d")
             .string();
     }
     
     return std::filesystem::path(compiler_call.get_input_src_file())
         .filename()
-        .replace_extension(".d")
+        .replace_extension(".o.d")
         .string();
 
 }   /* DepFilesState::_create_depfile_name() */

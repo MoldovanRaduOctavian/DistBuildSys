@@ -25,7 +25,7 @@ public:
         {
         // _client_uuid could be read out of a YAML
         // and generated if it does not already exist
-        _system_include_dirs.find_system_includes("/usr/bin/clang++");
+        _system_include_dirs.find_system_includes("/usr/bin/clang");
 
         };
 
@@ -38,6 +38,39 @@ public:
         CompilerCall &      compiler_call
         );
     
+    // Do this for testing depfiles
+    std::string test_handle_compiler_call(CompilerCall & compiler_call) {
+        std::vector<IncludeInfo> src_dependencies = 
+            compiler_call.collect_src_file_dependencies(_system_include_dirs);
+        
+        /*
+        for (const IncludeInfo & inc_info : src_dependencies) {
+            std::cout << inc_info.file_path << '\n';
+        }
+        */
+
+        std::string dep_file_name;
+        DepFilesState & dep_files_state = compiler_call.get_dep_files_state();
+        if (dep_files_state.is_depfile_needed()) {
+            std::vector<const IncludeInfo *> src_deps_ptrs;
+            for (const IncludeInfo & inc_info : src_dependencies) {
+                src_deps_ptrs.emplace_back(&inc_info);
+            }
+
+            dep_file_name = dep_files_state.generate_dep_file(
+                compiler_call, 
+                src_deps_ptrs
+            );
+        }
+        
+        return dep_file_name;
+
+    }    
+    
+    CmdLineIncludeDirs & get_system_include_dirs() {
+        return _system_include_dirs;
+    }
+
 private:
     
     boost::uuids::uuid              _client_uuid;

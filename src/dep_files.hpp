@@ -6,8 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "compiler_call.hpp"
 #include "includes_rework.hpp"
+
+class CompilerCall;
 
 struct DepTarget {
     std::string     target;
@@ -221,7 +222,7 @@ struct DepFile {
         std::ostringstream out;
 
         for (size_t i = 0; i < dep_targets.size(); ++i) {
-            const auto& d_target = dep_targets[i];
+            const auto & d_target = dep_targets[i];
 
             out << d_target.target << ":";
 
@@ -252,14 +253,15 @@ struct DepFile {
     }
 
     void write_to_file(
-        const std::filesystem::path& dep_file_name) const
+        const std::string & dep_file_name) const
     {
+        std::filesystem::create_directories(std::filesystem::path(dep_file_name).parent_path());
         std::ofstream file(dep_file_name, std::ios::binary);
 
         if (!file) {
             throw std::runtime_error(
                 "failed to open output file: " +
-                dep_file_name.string());
+                dep_file_name);
         }
 
         file << write_to_bytes();
@@ -356,11 +358,11 @@ class DepFilesState {
 public:
     
     void set_md_flag_present(bool md_flag_present) {
-        _md_flag_present = true;
+        _md_flag_present = md_flag_present;
     }
     
     void set_mmd_flag_present(bool mmd_flag_present) {
-        _mmd_flag_present = true;
+        _mmd_flag_present = mmd_flag_present;
     }
     
     void set_mp_flag_present(bool mp_flag_present) {
@@ -387,7 +389,6 @@ public:
         _mt_flag_paths += _process_makefile_target(mq_flag_path);
 
     }
-
     
     bool get_md_flag_present() const {
         return _md_flag_present;

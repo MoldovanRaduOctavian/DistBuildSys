@@ -4,8 +4,7 @@
 
 #include "includes_rework.hpp"
 #include "compiler_call.hpp"
-#include "proto_io.hpp"
-
+#include "client.hpp"
 
 #include <boost/asio.hpp>
 
@@ -67,7 +66,7 @@ private:
 
 
 int main() {
-    // boost::asio::io_context io_ctx;
+    boost::asio::io_context io_ctx;
     // auto                    res_adv = 
     //     ResourceAdvertisementService(io_ctx);
         
@@ -103,8 +102,12 @@ int main() {
     */    
 
     // I suppose this works well enough for now
+    
+    auto client = Client(io_ctx);
+    auto includes_cache = IncludesCache(client.get_system_include_dirs());    
+    auto compiler_call = CompilerCall(includes_cache);
+    
     /*
-    CompilerCall compiler_call(includes_cache);
     compiler_call.initialize_compiler_call
         (
         "/home/radu/distbuild/artifacts", 
@@ -115,6 +118,45 @@ int main() {
         "/home/radu/distbuild/DistBuildSys/src/daemon_main.cpp"}
         );
     */
+    
+    // Either the dependency parser does NOT work properly
+    // Or the dep file generation does not work properly
+    /*
+    compiler_call.initialize_compiler_call
+        (
+        "/home/radu/distbuild/artifacts", 
+        {"/usr/bin/c++", "-DBOOST_ATOMIC_DYN_LINK", "-DBOOST_ATOMIC_NO_LIB", "-DBOOST_FILESYSTEM_DYN_LINK", 
+        "-g", "-Wall", "-Wextra", "-Wshadow", "-std=c++20", "-MD", "-MT", 
+        "CMakeFiles/distbuild_daemon.dir/src/dep_files.cpp.o", "-o", 
+        "CMakeFiles/distbuild_daemon.dir/src/dep_files.cpp.o", "-c", 
+        "/home/radu/distbuild/DistBuildSys/src/dep_files.cpp"}
+        );
+    */
+    
+    /*
+    compiler_call.initialize_compiler_call
+        (
+        "/home/radu/distbuild/artifacts", 
+        {"/usr/bin/clang++", "-DBOOST_ATOMIC_DYN_LINK", "-DBOOST_ATOMIC_NO_LIB", "-DBOOST_FILESYSTEM_DYN_LINK", 
+        "-g", "-Wall", "-Wextra", "-Wshadow", "-std=c++20", "-MD", "-MT", 
+        "CMakeFiles/distbuild_daemon.dir/src/includes_rework.cpp.o", "-o", 
+        "CMakeFiles/distbuild_daemon.dir/src/includes_rework.cpp.o", "-c", 
+        "/home/radu/distbuild/DistBuildSys/src/includes_rework.cpp"}
+        );
+    */
+
+    compiler_call.initialize_compiler_call
+        (
+        "/home/radu/distbuild/artifacts", 
+        {"/usr/bin/clang++", "-DBOOST_ATOMIC_DYN_LINK", "-DBOOST_ATOMIC_NO_LIB", "-DBOOST_FILESYSTEM_DYN_LINK", 
+        "-g", "-Wall", "-Wextra", "-Wshadow", "-std=c++20", "-MD", "-MT", 
+        "CMakeFiles/distbuild_daemon.dir/src/client_session.cpp.o", "-o", 
+        "CMakeFiles/distbuild_daemon.dir/src/client_session.cpp.o", "-c", 
+        "/home/radu/distbuild/DistBuildSys/src/client_session.cpp"}
+        );
+    
+    std::string dep_file_path = client.test_handle_compiler_call(compiler_call);
+    std::cout << dep_file_path << '\n';
 
     auto x = 3;
 
