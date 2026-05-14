@@ -31,7 +31,8 @@ struct UnixIpcResponse {
     int         compiler_exit_code;
     std::string stdout_content;
     std::string stderr_content;
-
+    
+    UnixIpcResponse() = default;
     UnixIpcResponse
         (
         int                 _compiler_exit_code,

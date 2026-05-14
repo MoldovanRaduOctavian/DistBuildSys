@@ -47,9 +47,9 @@ private:
     CmdLineIncludeDirs  _cmd_line_include_dirs;
     DepFilesState       _dep_cmd_state;
 
-    std::chrono::system_clock::time_point
+    std::chrono::steady_clock::time_point
                         _call_creation_time;
-    std::chrono::system_clock::duration
+    std::chrono::steady_clock::duration
                         _call_resolution_duration;
     CallType            _compiler_call_type;
     std::string         _current_working_dir;
@@ -71,10 +71,17 @@ public:
         std::lock_guard<std::mutex> lock(_mtx);
         return _includes_cache;
     }
-    
+
     DepFilesState & get_dep_files_state() {
         std::lock_guard<std::mutex> lock(_mtx);
         return _dep_cmd_state;
+    }
+
+    const std::chrono::steady_clock::time_point &
+            get_call_creation_time() const 
+    {
+        std::lock_guard<std::mutex> lock(_mtx);
+        return _call_creation_time;
     }
 
     CallType get_compiler_call_type() const {
@@ -111,6 +118,30 @@ public:
         std::lock_guard<std::mutex> lock(_mtx);
         return _cmd_line_include_dirs;    
     }
+    
+    void set_stdout_content(const std::string & stdout_content) {
+        std::lock_guard<std::mutex> lock(_mtx);
+        _stdout_content = stdout_content;
+    }
+
+    void set_stderr_content(const std::string & stderr_content) {
+        std::lock_guard<std::mutex> lock(_mtx);
+        _stderr_content = stderr_content;
+    }
+   
+    void set_exit_code(int exit_code) {
+        std::lock_guard<std::mutex> lock(_mtx);
+        _exit_code = exit_code;
+    }
+
+    void set_call_duration
+        (
+        const std::chrono::steady_clock::duration & call_resolution_duration
+        ) 
+    {
+        std::lock_guard<std::mutex> lock(_mtx);
+        _call_resolution_duration = call_resolution_duration;
+    }
 
     CompilerCall
         (
@@ -119,7 +150,7 @@ public:
         _call_id(0),
         _includes_cache(&includes_cache),
         _cmd_line_include_dirs(),
-        _call_creation_time(std::chrono::system_clock::now()),
+        _call_creation_time(std::chrono::steady_clock::now()),
         _call_resolution_duration(),
         _compiler_call_type(CallType::CALL_TYPE_COUNT),
         _current_working_dir(),

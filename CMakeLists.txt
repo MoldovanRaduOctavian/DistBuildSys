@@ -27,13 +27,13 @@ find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 find_package(spdlog REQUIRED)
 
-add_executable(distbuild_wrapper src/compiler_wrapper_main.cpp)
-target_link_libraries(distbuild_wrapper
-    PRIVATE
-        Boost::system
-        Threads::Threads
-        spdlog::spdlog_header_only
-)
+# add_executable(distbuild_wrapper src/compiler_wrapper_main.cpp)
+# target_link_libraries(distbuild_wrapper
+#    PRIVATE
+#        Boost::system
+#        Threads::Threads
+#        spdlog::spdlog_header_only
+#)
 
 add_executable(distbuild_daemon 
     src/daemon_main.cpp
@@ -113,6 +113,20 @@ target_link_libraries(unix_ipc_server
 
 add_executable(unix_ipc_client
     src/unix_client_test.cpp
+)
+
+target_link_libraries(unix_ipc_client
+    PRIVATE
+    Boost::system
+    Boost::regex
+    Boost::filesystem
+    Threads::Threads
+    spdlog::spdlog_header_only
+    ${Protobuf_LIBRARIES}
+)
+
+add_executable(distbuild_wrapper
+    src/distbuild_wrapper.cpp
 )
 
 target_link_libraries(unix_ipc_client

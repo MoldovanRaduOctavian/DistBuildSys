@@ -76,9 +76,13 @@ public:
         std::lock_guard<std::mutex> lock(_mtx);
         return _session_uuid;
     }
+    
+    
+    void perform_local_compilation();
 
 private:
     
+
     bool _process_obj_file_chunk
         (
         std::shared_ptr<distbuild::ServerObjFileChunkResponse>

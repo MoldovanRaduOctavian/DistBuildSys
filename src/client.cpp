@@ -14,7 +14,8 @@
 #include "distbuild_messages.pb.h"
 #include "file_state_view.hpp"
 
-
+// A connection to one of the servers
+// You can have multiple connections to the same server
 boost::asio::awaitable<void> Client::connect_to_server
     (
     const std::string & server_ip,
@@ -113,6 +114,10 @@ boost::asio::awaitable<void> Client::connect_to_server
     }
     else {
         // ... We need to invalidate the session somehow
+        client_session->perform_local_compilation();
+        // Send the results back to the wrapper
+        // Perform a session cleanup
+
     }
 
 }   /* Client::connect_to_server() */

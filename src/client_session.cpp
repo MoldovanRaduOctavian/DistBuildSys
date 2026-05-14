@@ -2,10 +2,13 @@
 
 #include <fstream>
 
+#include <boost/process.hpp>
+#include <boost/process/detail/child_decl.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
 #include "proto_io.hpp"
+#include "unix_ipc_socket.hpp"
 
 boost::asio::awaitable<void> ClientSession::_handle_client_session() {
     
@@ -17,6 +20,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
             case distbuild::ServerMessage::kSessionConfirmed:
                 break;
             case distbuild::ServerMessage::kSessionAbort:
+                // What do you do in case of abort???
                 break;
             case distbuild::ServerMessage::kFileUpComplete:
                 // Do we even check the contents of this packet?
@@ -29,6 +33,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                     // Do we retry sending that packet?
                     // Do we go for local compilation?
                     // Do we end the session?
+                    perform_local_compilation();
                 }
 
                 break;
@@ -47,6 +52,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                     // Handle failure gracefully
                     // Fall back to local compilation
                     // Cleanup the current session
+                    perform_local_compilation();
                 }
 
                 break;
@@ -58,6 +64,43 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
     } 
 
 }   /* ClientSession::_handle_client_session() */
+
+
+void ClientSession::perform_local_compilation() {
+    boost::process::ipstream stdout_stream;
+    boost::process::ipstream stderr_stream;
+        
+    boost::process::child compiler_process
+        (
+        _compiler_call.get_compiler_type(),
+        boost::process::args(_compiler_call.get_cmd_line_args()),
+        boost::process::std_out > stdout_stream,
+        boost::process::std_err > stderr_stream,
+        boost::process::start_dir = _compiler_call.get_current_working_dir() 
+        );
+     
+    compiler_process.wait();
+
+    std::ostringstream stdout_oss;
+    stdout_oss << stdout_stream.rdbuf();
+    
+    std::ostringstream stderr_oss;
+    stderr_oss << stderr_stream.rdbuf(); 
+
+    auto compilation_end_ts = std::chrono::steady_clock::now();
+    auto compilation_duration = std::chrono::duration_cast<std::chrono::seconds>
+        (
+        compilation_end_ts - _compiler_call.get_call_creation_time()
+        );
+
+    int compiler_exit_code = compiler_process.exit_code();
+    
+    _compiler_call.set_call_duration(compilation_duration);
+    _compiler_call.set_exit_code(compiler_exit_code);
+    _compiler_call.set_stdout_content(stdout_oss.str());
+    _compiler_call.set_stderr_content(stderr_oss.str());
+
+}   /* ClientSession::perform_local_compilation() */
 
 
 bool ClientSession::_process_obj_file_chunk
@@ -125,6 +168,9 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
     boost::uuids::uuid &    session_uuid
     )
 {
+    // Most likely this should be wrapped in a try/catch
+    // as asio function throw on error
+    // we will see if we can live without that
     co_await _session_socket.async_connect
         (
         boost::asio::ip::tcp::endpoint
