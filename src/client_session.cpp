@@ -1,69 +1,103 @@
 #include "client_session.hpp"
 
+#include <boost/asio/socket_base.hpp>
+#include <boost/system/detail/error_code.hpp>
 #include <fstream>
 
 #include <boost/process.hpp>
 #include <boost/process/detail/child_decl.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <mutex>
 
+#include "client.hpp"
 #include "proto_io.hpp"
 #include "unix_ipc_socket.hpp"
 
 boost::asio::awaitable<void> ClientSession::_handle_client_session() {
-    
-    for (;;) {
-        
-        distbuild::ServerMessage server_message;
-        co_await proto_io::receive_msg(_session_socket, server_message);
-        switch (server_message.content_case()) {
-            case distbuild::ServerMessage::kSessionConfirmed:
-                break;
-            case distbuild::ServerMessage::kSessionAbort:
-                // What do you do in case of abort???
-                break;
-            case distbuild::ServerMessage::kFileUpComplete:
-                // Do we even check the contents of this packet?
-                if (server_message.file_up_complete().session_id() ==  boost::uuids::to_string(_session_uuid)
-                 && server_message.file_up_complete().success() == true) {
-                    _send_required_file();
-                }
-                else {
-                    // What do we do?
-                    // Do we retry sending that packet?
-                    // Do we go for local compilation?
-                    // Do we end the session?
-                    perform_local_compilation();
-                }
+   
+    try {
+        for (;;) {
+            
+            distbuild::ServerMessage server_message;
+            co_await proto_io::receive_msg(_session_socket, server_message);
+            switch (server_message.content_case()) {
+                case distbuild::ServerMessage::kSessionConfirmed:
+                    break;
+                case distbuild::ServerMessage::kSessionAbort:
+                    // What do you do in case of abort???
+                    break;
+                case distbuild::ServerMessage::kFileUpComplete:
+                    // Do we even check the contents of this packet?
+                    if (server_message.file_up_complete().session_id() ==  boost::uuids::to_string(_session_uuid)
+                     && server_message.file_up_complete().success() == true) {
+                        _send_required_file();
+                    }
+                    else {
+                        // What do we do?
+                        // Do we retry sending that packet?
+                        // Do we go for local compilation?
+                        // Do we end the session?
+                        perform_local_compilation();
+                        terminate_client_session();
+                    }
 
-                break;
-            case distbuild::ServerMessage::kAllReqUpComplete:
-                // We do not even need this I think
-                break;
-            case distbuild::ServerMessage::kObjFileChunkTransmit: {
-                // This is the most important one
-                auto obj_chunk_msg = 
-                    std::make_shared<distbuild::ServerObjFileChunkResponse>(
-                        server_message.obj_file_chunk_transmit()
-                    );
+                    break;
+                case distbuild::ServerMessage::kAllReqUpComplete:
+                    // We do not even need this I think
+                    break;
+                case distbuild::ServerMessage::kObjFileChunkTransmit: {
+                    // This is the most important one
+                    auto obj_chunk_msg = 
+                        std::make_shared<distbuild::ServerObjFileChunkResponse>(
+                            server_message.obj_file_chunk_transmit()
+                        );
 
-                bool obj_chunk_upload_success = _process_obj_file_chunk(obj_chunk_msg);
-                if (obj_chunk_upload_success == false) {
-                    // Handle failure gracefully
-                    // Fall back to local compilation
-                    // Cleanup the current session
-                    perform_local_compilation();
+                    bool obj_chunk_upload_success = _process_obj_file_chunk(obj_chunk_msg);
+                    if (obj_chunk_upload_success == false) {
+                        // Handle failure gracefully
+                        // Fall back to local compilation
+                        // Cleanup the current session
+                        perform_local_compilation();
+                        terminate_client_session();
+                    }
+
+                    break;
                 }
-
-                break;
+                default:
+                    break;
             }
-            default:
-                break;
-        }
 
-    } 
+        } 
+    }
+    catch (const std::exception & e) {
+        // What do we do in case of an exception?
+        std::cout << e.what() << '\n';
+    }
 
 }   /* ClientSession::_handle_client_session() */
+
+
+void ClientSession::terminate_client_session() {
+    std::lock_guard<std::mutex> lock(_mtx);
+    
+    distbuild::ClientMessage client_message;
+    auto * client_session_abort_rqst = client_message.mutable_session_abort();
+    client_session_abort_rqst->set_session_id(boost::uuids::to_string(_session_uuid));
+    client_session_abort_rqst->set_client_id
+        (
+        boost::uuids::to_string(_client.get_client_uuid())
+        );
+    send_msg(client_message);
+    
+    // This should maybe be placed on the same strand as message sending
+    boost::system::error_code ec;
+    auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
+    _session_socket.close();
+    
+    _client.remove_client_session(_session_uuid);
+
+}   /* ClientSession::terminate_client_session() */
 
 
 void ClientSession::perform_local_compilation() {

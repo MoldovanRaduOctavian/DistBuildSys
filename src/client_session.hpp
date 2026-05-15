@@ -14,6 +14,8 @@
 #include "compiler_call.hpp"
 #include "distbuild_messages.pb.h"
 
+class Client;
+
 class ClientSession {
     
     struct ObjFileTransferState {
@@ -45,10 +47,12 @@ public:
         (
         boost::asio::io_context & 
                             io_ctx,
+        Client &            client,
         CompilerCall &      compiler_call
         ) :
         _io_ctx(io_ctx),
         _session_socket(_io_ctx),
+        _client(client),
         _compiler_call(compiler_call),
         _req_files_send_idx(0)
     {};
@@ -79,6 +83,8 @@ public:
     
     
     void perform_local_compilation();
+    
+    void terminate_client_session();
 
 private:
     
@@ -101,6 +107,8 @@ private:
     boost::asio::ip::tcp::socket    _session_socket;
     
     CompilerCall &                  _compiler_call;
+    
+    Client &                        _client;
 
     boost::asio::strand<boost::asio::any_io_executor>
                                     _strand{ _session_socket.get_executor() };

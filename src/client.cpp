@@ -24,7 +24,7 @@ boost::asio::awaitable<void> Client::connect_to_server
     )
 {
     // ClientSession client_session(_io_ctx, compiler_call);
-    auto client_session = std::make_unique<ClientSession>(_io_ctx, compiler_call);
+    auto client_session = std::make_unique<ClientSession>(_io_ctx, *this, compiler_call);
     
     distbuild::ClientMessage client_message;
     auto * client_session_start_rqst = 
@@ -115,6 +115,7 @@ boost::asio::awaitable<void> Client::connect_to_server
     else {
         // ... We need to invalidate the session somehow
         client_session->perform_local_compilation();
+        client_session->terminate_client_session();
         // Send the results back to the wrapper
         // Perform a session cleanup
 
@@ -122,4 +123,29 @@ boost::asio::awaitable<void> Client::connect_to_server
 
 }   /* Client::connect_to_server() */
 
+
+void Client::remove_client_session
+    (
+    const boost::uuids::uuid & session_uuid
+    )
+{
+    const std::string session_uuid_str = boost::uuids::to_string(session_uuid);
+    if (_client_sessions.find(session_uuid_str) != _client_sessions.end()) {
+        _client_sessions.erase(session_uuid_str);
+    }
+    
+    // This is where the compiler call also gets removed
+
+}   /* Client::remove_client_session() */
+
+
+UnixIpcResponse Client::_handle_ipc_request
+    (
+    const UnixIpcRequest & ipc_request
+    )
+{
+    // This should be non-blocking
+    // This is not alright
+
+}   /* Client::_handle_ipc_request() */
 

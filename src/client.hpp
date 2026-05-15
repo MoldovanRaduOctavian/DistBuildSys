@@ -11,6 +11,7 @@
 #include "client_session.hpp"
 #include "compiler_call.hpp"
 #include "includes_rework.hpp"
+#include "unix_ipc_socket.hpp"
 
 class Client {
 
@@ -21,7 +22,13 @@ public:
         boost::asio::io_context & 
                             io_ctx
         ) :
-        _io_ctx(io_ctx)
+        _io_ctx(io_ctx),
+        _unix_ipc_manager(
+            io_ctx, 
+            "/tmp/distbuild_ipc.sock",
+            [this](const UnixIpcRequest & ipc_request) -> UnixIpcResponse {
+                return _handle_ipc_request(ipc_request);                
+            })
         {
         // _client_uuid could be read out of a YAML
         // and generated if it does not already exist
@@ -38,6 +45,8 @@ public:
         CompilerCall &      compiler_call
         );
     
+    void remove_client_session(const boost::uuids::uuid & session_uuid);
+
     // Do this for testing depfiles
     std::string test_handle_compiler_call(CompilerCall & compiler_call) {
         std::vector<IncludeInfo> src_dependencies = 
@@ -70,21 +79,30 @@ public:
     CmdLineIncludeDirs & get_system_include_dirs() {
         return _system_include_dirs;
     }
+    
+    const boost::uuids::uuid & get_client_uuid() const {
+        return _client_uuid;
+    }
 
 private:
     
+    UnixIpcResponse _handle_ipc_request(const UnixIpcRequest & ipc_request);
+
     boost::uuids::uuid              _client_uuid;
     boost::asio::io_context &       _io_ctx;
     
     // All of these need to have thread safe interfaces
     // because ClientSessions working in parallel will be 
     // interacting with these things
+    
+    UnixIpcManager                  _unix_ipc_manager;
 
     CmdLineIncludeDirs              _system_include_dirs;
 
     std::unordered_map<std::string, std::unique_ptr<ClientSession>>
                                     _client_sessions;
-
+    std::unordered_map<std::string, std::unique_ptr<CompilerCall>>
+                                    _client_compiler_calls;
 };
 
 #endif /* CLIENT_HPP */
