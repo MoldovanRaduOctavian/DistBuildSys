@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include <boost/asio.hpp>
+#include <boost/asio/experimental/channel.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <google/protobuf/message.h>
 
@@ -26,23 +27,23 @@ public:
         _unix_ipc_manager(
             io_ctx, 
             "/tmp/distbuild_ipc.sock",
-            [this](const UnixIpcRequest & ipc_request) -> UnixIpcResponse {
-                return _handle_ipc_request(ipc_request);                
-            })
+            [this](const UnixIpcRequest & ipc_request) -> boost::asio::awaitable<UnixIpcResponse> {
+                co_return co_await _handle_ipc_request(ipc_request);                
+            }),
+        _includes_cache(_system_include_dirs)
         {
         // _client_uuid could be read out of a YAML
         // and generated if it does not already exist
-        _system_include_dirs.find_system_includes("/usr/bin/clang");
-
         };
 
     boost::asio::awaitable<void> connect_to_server_v1(const char * req_file);
     
-    boost::asio::awaitable<void> connect_to_server
+    boost::asio::awaitable<ClientSession *> connect_to_server
         (
         const std::string & server_ip,
         uint16_t            server_port,
-        CompilerCall &      compiler_call
+        std::unique_ptr<CompilerCall>
+                            compiler_call
         );
     
     void remove_client_session(const boost::uuids::uuid & session_uuid);
@@ -86,7 +87,7 @@ public:
 
 private:
     
-    UnixIpcResponse _handle_ipc_request(const UnixIpcRequest & ipc_request);
+    boost::asio::awaitable<UnixIpcResponse> _handle_ipc_request(const UnixIpcRequest & ipc_request);
 
     boost::uuids::uuid              _client_uuid;
     boost::asio::io_context &       _io_ctx;
@@ -98,11 +99,15 @@ private:
     UnixIpcManager                  _unix_ipc_manager;
 
     CmdLineIncludeDirs              _system_include_dirs;
+    
+    IncludesCache                   _includes_cache;
 
     std::unordered_map<std::string, std::unique_ptr<ClientSession>>
                                     _client_sessions;
     std::unordered_map<std::string, std::unique_ptr<CompilerCall>>
                                     _client_compiler_calls;
+
+    mutable std::mutex              _mtx;
 };
 
 #endif /* CLIENT_HPP */

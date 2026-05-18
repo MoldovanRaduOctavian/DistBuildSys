@@ -5,14 +5,17 @@
 #include <fstream>
 #include <deque>
 #include <mutex>
+#include <memory>
 #include <string>
 #include <optional>
 
+#include <boost/asio/experimental/channel.hpp>
 #include <boost/asio.hpp>
 #include <boost/uuid/uuid.hpp>
 
 #include "compiler_call.hpp"
 #include "distbuild_messages.pb.h"
+#include "unix_ipc_socket.hpp"
 
 class Client;
 
@@ -54,7 +57,8 @@ public:
         _session_socket(_io_ctx),
         _client(client),
         _compiler_call(compiler_call),
-        _req_files_send_idx(0)
+        _req_files_send_idx(0),
+        _unix_ipc_channel(_io_ctx, 1)
     {};
     
     void initialize_client_session
@@ -82,19 +86,37 @@ public:
     }
     
     
-    void perform_local_compilation();
+    boost::asio::awaitable<void> perform_local_compilation();
     
     void terminate_client_session();
+    
+    boost::asio::awaitable<UnixIpcResponse> retrieve_unix_ipc_response() {
+        UnixIpcResponse response = 
+            co_await _unix_ipc_channel.async_receive(boost::asio::use_awaitable);
+
+        co_return response;
+
+    }
+
+    boost::asio::awaitable<void> publish_unix_ipc_response(UnixIpcResponse && response) {
+        co_await _unix_ipc_channel.async_send
+            (
+            boost::system::error_code{},
+            response, 
+            boost::asio::use_awaitable
+            );   
+
+    }
 
 private:
     
 
-    bool _process_obj_file_chunk
+    boost::asio::awaitable<bool> _process_obj_file_chunk
         (
         std::shared_ptr<distbuild::ServerObjFileChunkResponse>
                     obj_file_chunk_msg
         );
-
+    
     void                            _send_required_file();
     
     boost::asio::awaitable<void>    _handle_client_session();
@@ -122,6 +144,9 @@ private:
     
     std::optional<ObjFileTransferState>
                                     _obj_file_transfer_state;
+    
+    boost::asio::experimental::channel<void(boost::system::error_code, UnixIpcResponse)>
+                                    _unix_ipc_channel;
 
     mutable std::mutex              _mtx;
 

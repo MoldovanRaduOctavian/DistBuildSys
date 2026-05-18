@@ -26,6 +26,8 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                     break;
                 case distbuild::ServerMessage::kSessionAbort:
                     // What do you do in case of abort???
+                    co_await perform_local_compilation();
+                    terminate_client_session();
                     break;
                 case distbuild::ServerMessage::kFileUpComplete:
                     // Do we even check the contents of this packet?
@@ -38,7 +40,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                         // Do we retry sending that packet?
                         // Do we go for local compilation?
                         // Do we end the session?
-                        perform_local_compilation();
+                        co_await perform_local_compilation();
                         terminate_client_session();
                     }
 
@@ -53,12 +55,12 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                             server_message.obj_file_chunk_transmit()
                         );
 
-                    bool obj_chunk_upload_success = _process_obj_file_chunk(obj_chunk_msg);
+                    bool obj_chunk_upload_success = co_await _process_obj_file_chunk(obj_chunk_msg);
                     if (obj_chunk_upload_success == false) {
                         // Handle failure gracefully
                         // Fall back to local compilation
                         // Cleanup the current session
-                        perform_local_compilation();
+                        co_await perform_local_compilation();
                         terminate_client_session();
                     }
 
@@ -73,6 +75,8 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
     catch (const std::exception & e) {
         // What do we do in case of an exception?
         std::cout << e.what() << '\n';
+        // co_await perform_local_compilation();
+        terminate_client_session();
     }
 
 }   /* ClientSession::_handle_client_session() */
@@ -89,7 +93,7 @@ void ClientSession::terminate_client_session() {
         boost::uuids::to_string(_client.get_client_uuid())
         );
     send_msg(client_message);
-    
+        
     // This should maybe be placed on the same strand as message sending
     boost::system::error_code ec;
     auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
@@ -100,7 +104,7 @@ void ClientSession::terminate_client_session() {
 }   /* ClientSession::terminate_client_session() */
 
 
-void ClientSession::perform_local_compilation() {
+boost::asio::awaitable<void> ClientSession::perform_local_compilation() {
     boost::process::ipstream stdout_stream;
     boost::process::ipstream stderr_stream;
         
@@ -129,15 +133,24 @@ void ClientSession::perform_local_compilation() {
 
     int compiler_exit_code = compiler_process.exit_code();
     
+    const std::string stdout_str = stdout_oss.str();
+    const std::string stderr_str = stderr_oss.str();
+
     _compiler_call.set_call_duration(compilation_duration);
     _compiler_call.set_exit_code(compiler_exit_code);
-    _compiler_call.set_stdout_content(stdout_oss.str());
-    _compiler_call.set_stderr_content(stderr_oss.str());
+    _compiler_call.set_stdout_content(stdout_str);
+    _compiler_call.set_stderr_content(stderr_str);
+    
+    co_await publish_unix_ipc_response(UnixIpcResponse{
+        compiler_exit_code,
+        stdout_str,
+        stderr_str
+    });
 
 }   /* ClientSession::perform_local_compilation() */
 
 
-bool ClientSession::_process_obj_file_chunk
+boost::asio::awaitable<bool> ClientSession::_process_obj_file_chunk
     (
     std::shared_ptr<distbuild::ServerObjFileChunkResponse>
                 obj_file_chunk_msg
@@ -148,18 +161,18 @@ bool ClientSession::_process_obj_file_chunk
     if (obj_file_chunk_msg->session_id() != session_uuid) {
         // ... Handle error cases gracefully, especially on the client
         // any failure should trigger a local compilation
-        return false;
+        co_return false;
     }
     
     std::lock_guard<std::mutex> lock(_mtx);
     if (_obj_file_transfer_state.has_value()) {
         if (_obj_file_transfer_state.value().is_finished == true) {
-            return true;
+            co_return true;
         }
     }
     else {
         // Most likely just fall back to local compilation
-        return false;
+        co_return false;
     }
     
     ObjFileTransferState & obj_transfer_state = _obj_file_transfer_state.value();
@@ -167,7 +180,7 @@ bool ClientSession::_process_obj_file_chunk
     if (obj_transfer_state.session_id != session_uuid) {
         obj_transfer_state.is_finished = true;
         obj_transfer_state.obj_out_stream.close();
-        return false;
+        co_return false;
     }    
     
     obj_transfer_state.obj_out_stream.write
@@ -185,9 +198,23 @@ bool ClientSession::_process_obj_file_chunk
         // to the compiler wrapper by UNIX IPC socket
         // We have to signal the client to publish the results
         // through the UNIX IPC socket/sockets
+        
+        _compiler_call.set_call_duration(std::chrono::seconds(
+            obj_file_chunk_msg->compiler_call_duration()
+        ));
+        _compiler_call.set_exit_code(obj_file_chunk_msg->compiler_exit_code());
+        _compiler_call.set_stderr_content(obj_file_chunk_msg->compiler_stderr());
+        _compiler_call.set_stdout_content(obj_file_chunk_msg->compiler_stdout());
+
+        co_await publish_unix_ipc_response(UnixIpcResponse{
+            obj_file_chunk_msg->compiler_exit_code(),
+            obj_file_chunk_msg->compiler_stderr(),
+            obj_file_chunk_msg->compiler_stdout()
+        });
+
     }
     
-    return true;
+    co_return true;
 
 }   /* ClientSession::_handle_client_session() */
 

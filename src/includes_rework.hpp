@@ -18,7 +18,9 @@ struct CmdLineIncludeDirs {
     std::vector<std::string> dash_include;
 
     CmdLineIncludeDirs()
-    {};
+    {
+        find_system_includes("usr/bin/clang++");
+    };
     
     bool find_system_includes
         (

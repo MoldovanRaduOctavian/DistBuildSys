@@ -12,7 +12,7 @@ int main() {
         (
         io_ctx,
         "/tmp/distbuild_ipc.sock",
-        [](const UnixIpcRequest & request) -> UnixIpcResponse {
+        [](const UnixIpcRequest & request) -> boost::asio::awaitable<UnixIpcResponse> {
             std::cout << "UNIX IPC REQUEST" << '\n';
             std::cout << "CWD: " << request.current_working_dir << '\n';
             
@@ -20,7 +20,7 @@ int main() {
                     std::cout << "arg: " << arg << '\n';
             }
 
-            return UnixIpcResponse
+            co_return UnixIpcResponse
                 (
                 0, /* exit code */
                 "Compilation successful",

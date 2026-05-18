@@ -42,7 +42,6 @@ private:
         std::string_view{"/usr/bin/g++"},
         };
 
-    uint64_t            _call_id;
     IncludesCache *     _includes_cache;
     CmdLineIncludeDirs  _cmd_line_include_dirs;
     DepFilesState       _dep_cmd_state;
@@ -147,7 +146,6 @@ public:
         (
         IncludesCache &     includes_cache
         ) :
-        _call_id(0),
         _includes_cache(&includes_cache),
         _cmd_line_include_dirs(),
         _call_creation_time(std::chrono::steady_clock::now()),

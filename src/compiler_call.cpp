@@ -16,7 +16,6 @@ bool CompilerCall::initialize_compiler_call
     )
 {   
     std::lock_guard<std::mutex> lock(_mtx);
-    _call_id = 0;
     _call_creation_time = std::chrono::steady_clock::now();
     _current_working_dir = compiler_call_directory;
     

@@ -4,22 +4,18 @@
 #include <atomic>
 #include <filesystem>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include <boost/asio.hpp>
 #include <boost/asio/awaitable.hpp>
-#include <boost/asio/co_spawn.hpp>
-#include <boost/asio/detached.hpp>
-#include <boost/asio/local/stream_protocol.hpp>
-#include <boost/asio/redirect_error.hpp>
-#include <boost/asio/thread_pool.hpp>
 #include <boost/asio/use_awaitable.hpp>
 
 struct UnixIpcRequest {
     std::string              current_working_dir;
     std::vector<std::string> cmd_line_args;
-
+    
     UnixIpcRequest
         (
         const std::string & _current_working_dir,
@@ -29,7 +25,7 @@ struct UnixIpcRequest {
         current_working_dir(_current_working_dir),
         cmd_line_args(_cmd_line_args)
         {};
-
+    
 };
 
 
@@ -49,6 +45,11 @@ struct UnixIpcResponse {
         stdout_content(_stdout_content),
         stderr_content(_stderr_content)
         {};
+    
+    UnixIpcResponse(const UnixIpcResponse&) = default;  // optional
+    UnixIpcResponse(UnixIpcResponse&&) = default;       // REQUIRED
+    UnixIpcResponse& operator=(UnixIpcResponse&&) = default; 
+
 };
 
 
@@ -57,7 +58,7 @@ class UnixIpcManager {
 public:
     
     using RequestHandler =
-        std::function<UnixIpcResponse(const UnixIpcRequest &)>;
+        std::function<boost::asio::awaitable<UnixIpcResponse>(const UnixIpcRequest &)>;
 
 private:
 
@@ -154,7 +155,7 @@ private:
 
         }
     }
-    
+            
     boost::asio::awaitable<void> _handle_session
         (
         boost::asio::local::stream_protocol::socket connection_socket
@@ -184,43 +185,12 @@ private:
             UnixIpcRequest request =
                 _deserialize_request(payload);
             
-            // This needs to run in a non blocking way
-            // UnixIpcResponse response = 
-            //    _request_handler(request);
-            
-            // This does not build
             UnixIpcResponse response =
-                co_await boost::asio::async_initiate<
-                    boost::asio::use_awaitable_t<>,
-                    void(UnixIpcResponse)>(
-                    [this, request](auto handler) mutable {
-
-                        boost::asio::post(
-                            _worker_pool,
-                            [this,
-                             request = std::move(request),
-                             handler = std::move(handler)]() mutable {
-
-                                try {
-
-                                    UnixIpcResponse response =
-                                        _request_handler(request);
-
-                                    std::move(handler)(response);
-
-                                } catch (...) {
-
-                                    UnixIpcResponse error_response(
-                                        1,
-                                        "",
-                                        "Unhandled exception in request handler");
-
-                                    std::move(handler)(error_response);
-                                }
-                            });
-                    },
+                co_await boost::asio::co_spawn(
+                    _worker_pool,
+                    _request_handler(request),
                     boost::asio::use_awaitable
-            );
+                );
 
             std::vector<uint8_t> response_data =
                 _serialize_response(response);
@@ -265,6 +235,7 @@ private:
 
     }
     
+        
     void _append_u32
         (
         std::vector<uint8_t> &  out,
