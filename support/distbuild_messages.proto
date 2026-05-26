@@ -3,6 +3,16 @@ syntax = "proto3";
 package distbuild;
 
 /*
+  Resource advertsising packet
+*/
+message ResourceAdvMessage {
+  string server_uuid = 1;
+  string server_host = 2;
+  uint32 server_port = 3;
+  uint32 available_jobs = 4;
+}
+
+/*
   Common data types
 */
 message FileInfo {

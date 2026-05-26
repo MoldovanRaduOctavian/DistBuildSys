@@ -24,6 +24,10 @@ extern PROTOBUF_INTERNAL_EXPORT_support_2fdistbuild_5fmessages_2eproto ::PROTOBU
 extern PROTOBUF_INTERNAL_EXPORT_support_2fdistbuild_5fmessages_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_ServerSessionAbortResponse_support_2fdistbuild_5fmessages_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_support_2fdistbuild_5fmessages_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_ServerSessionConfirmedResponse_support_2fdistbuild_5fmessages_2eproto;
 namespace distbuild {
+class ResourceAdvMessageDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<ResourceAdvMessage> _instance;
+} _ResourceAdvMessage_default_instance_;
 class FileInfoDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<FileInfo> _instance;
@@ -151,6 +155,20 @@ static void InitDefaultsscc_info_FileInfo_support_2fdistbuild_5fmessages_2eproto
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_FileInfo_support_2fdistbuild_5fmessages_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_FileInfo_support_2fdistbuild_5fmessages_2eproto}, {}};
 
+static void InitDefaultsscc_info_ResourceAdvMessage_support_2fdistbuild_5fmessages_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::distbuild::_ResourceAdvMessage_default_instance_;
+    new (ptr) ::distbuild::ResourceAdvMessage();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::distbuild::ResourceAdvMessage::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_ResourceAdvMessage_support_2fdistbuild_5fmessages_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_ResourceAdvMessage_support_2fdistbuild_5fmessages_2eproto}, {}};
+
 static void InitDefaultsscc_info_ServerAllReqUploadCompleteResponse_support_2fdistbuild_5fmessages_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -240,11 +258,20 @@ static void InitDefaultsscc_info_ServerSessionConfirmedResponse_support_2fdistbu
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_ServerSessionConfirmedResponse_support_2fdistbuild_5fmessages_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_ServerSessionConfirmedResponse_support_2fdistbuild_5fmessages_2eproto}, {}};
 
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_support_2fdistbuild_5fmessages_2eproto[11];
+static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_support_2fdistbuild_5fmessages_2eproto[12];
 static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_support_2fdistbuild_5fmessages_2eproto = nullptr;
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_support_2fdistbuild_5fmessages_2eproto = nullptr;
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_support_2fdistbuild_5fmessages_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::distbuild::ResourceAdvMessage, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::distbuild::ResourceAdvMessage, server_uuid_),
+  PROTOBUF_FIELD_OFFSET(::distbuild::ResourceAdvMessage, server_host_),
+  PROTOBUF_FIELD_OFFSET(::distbuild::ResourceAdvMessage, server_port_),
+  PROTOBUF_FIELD_OFFSET(::distbuild::ResourceAdvMessage, available_jobs_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::distbuild::FileInfo, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -346,20 +373,22 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_support_2fdistbuild_5fmessages
   PROTOBUF_FIELD_OFFSET(::distbuild::ServerObjFileChunkResponse, data_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::distbuild::FileInfo)},
-  { 8, -1, sizeof(::distbuild::ClientMessage)},
-  { 17, -1, sizeof(::distbuild::ClientSessionStartRequest)},
-  { 29, -1, sizeof(::distbuild::ClientSessionAbortRequest)},
-  { 36, -1, sizeof(::distbuild::ClientFileChunkUploadRequest)},
-  { 47, -1, sizeof(::distbuild::ServerMessage)},
-  { 58, -1, sizeof(::distbuild::ServerSessionConfirmedResponse)},
-  { 65, -1, sizeof(::distbuild::ServerSessionAbortResponse)},
-  { 72, -1, sizeof(::distbuild::ServerFileUpCompleteResponse)},
-  { 80, -1, sizeof(::distbuild::ServerAllReqUploadCompleteResponse)},
-  { 86, -1, sizeof(::distbuild::ServerObjFileChunkResponse)},
+  { 0, -1, sizeof(::distbuild::ResourceAdvMessage)},
+  { 9, -1, sizeof(::distbuild::FileInfo)},
+  { 17, -1, sizeof(::distbuild::ClientMessage)},
+  { 26, -1, sizeof(::distbuild::ClientSessionStartRequest)},
+  { 38, -1, sizeof(::distbuild::ClientSessionAbortRequest)},
+  { 45, -1, sizeof(::distbuild::ClientFileChunkUploadRequest)},
+  { 56, -1, sizeof(::distbuild::ServerMessage)},
+  { 67, -1, sizeof(::distbuild::ServerSessionConfirmedResponse)},
+  { 74, -1, sizeof(::distbuild::ServerSessionAbortResponse)},
+  { 81, -1, sizeof(::distbuild::ServerFileUpCompleteResponse)},
+  { 89, -1, sizeof(::distbuild::ServerAllReqUploadCompleteResponse)},
+  { 95, -1, sizeof(::distbuild::ServerObjFileChunkResponse)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::distbuild::_ResourceAdvMessage_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::distbuild::_FileInfo_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::distbuild::_ClientMessage_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::distbuild::_ClientSessionStartRequest_default_instance_),
@@ -375,57 +404,60 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 
 const char descriptor_table_protodef_support_2fdistbuild_5fmessages_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n support/distbuild_messages.proto\022\tdist"
-  "build\"@\n\010FileInfo\022\020\n\010filename\030\001 \001(\t\022\020\n\010f"
-  "ilesize\030\002 \001(\004\022\020\n\010filehash\030\003 \001(\014\"\336\001\n\rClie"
-  "ntMessage\022=\n\rsession_start\030\001 \001(\0132$.distb"
-  "uild.ClientSessionStartRequestH\000\022=\n\rsess"
-  "ion_abort\030\002 \001(\0132$.distbuild.ClientSessio"
-  "nAbortRequestH\000\022D\n\021file_chunk_upload\030\003 \001"
-  "(\0132\'.distbuild.ClientFileChunkUploadRequ"
-  "estH\000B\t\n\007content\"\345\001\n\031ClientSessionStartR"
-  "equest\022\021\n\tclient_id\030\001 \001(\t\022\032\n\022client_work"
-  "ing_dir\030\002 \001(\t\022\032\n\022client_source_file\030\003 \001("
-  "\t\022\027\n\017client_compiler\030\004 \001(\t\022\034\n\024client_cmd"
-  "_line_args\030\005 \003(\t\022\024\n\014client_idirs\030\006 \003(\t\0220"
-  "\n\023required_files_info\030\007 \003(\0132\023.distbuild."
-  "FileInfo\"B\n\031ClientSessionAbortRequest\022\022\n"
-  "\nsession_id\030\001 \001(\t\022\021\n\tclient_id\030\002 \001(\t\"\216\001\n"
-  "\034ClientFileChunkUploadRequest\022\022\n\nsession"
-  "_id\030\001 \001(\t\022\020\n\010filename\030\002 \001(\t\022\023\n\013sequence_"
-  "no\030\003 \001(\004\022\016\n\006offset\030\004 \001(\004\022\014\n\004data\030\005 \001(\014\022\025"
-  "\n\ris_last_chunk\030\006 \001(\010\"\377\002\n\rServerMessage\022"
-  "F\n\021session_confirmed\030\001 \001(\0132).distbuild.S"
-  "erverSessionConfirmedResponseH\000\022>\n\rsessi"
-  "on_abort\030\002 \001(\0132%.distbuild.ServerSession"
-  "AbortResponseH\000\022C\n\020file_up_complete\030\003 \001("
-  "\0132\'.distbuild.ServerFileUpCompleteRespon"
-  "seH\000\022L\n\023all_req_up_complete\030\004 \001(\0132-.dist"
-  "build.ServerAllReqUploadCompleteResponse"
-  "H\000\022H\n\027obj_file_chunk_transmit\030\005 \001(\0132%.di"
-  "stbuild.ServerObjFileChunkResponseH\000B\t\n\007"
-  "content\"L\n\036ServerSessionConfirmedRespons"
-  "e\022\022\n\nsession_id\030\001 \001(\t\022\026\n\016required_files\030"
-  "\002 \003(\t\"C\n\032ServerSessionAbortResponse\022\022\n\ns"
-  "ession_id\030\001 \001(\t\022\021\n\tclient_id\030\002 \001(\t\"U\n\034Se"
-  "rverFileUpCompleteResponse\022\022\n\nsession_id"
-  "\030\001 \001(\t\022\020\n\010filename\030\002 \001(\t\022\017\n\007success\030\003 \001("
-  "\010\"8\n\"ServerAllReqUploadCompleteResponse\022"
-  "\022\n\nsession_id\030\001 \001(\t\"\325\001\n\032ServerObjFileChu"
-  "nkResponse\022\022\n\nsession_id\030\001 \001(\t\022\032\n\022compil"
-  "er_exit_code\030\002 \001(\005\022\036\n\026compiler_call_dura"
-  "tion\030\003 \001(\005\022\027\n\017compiler_stdout\030\004 \001(\t\022\027\n\017c"
-  "ompiler_stderr\030\005 \001(\t\022\020\n\010filesize\030\006 \001(\004\022\025"
-  "\n\ris_last_chunk\030\007 \001(\010\022\014\n\004data\030\010 \001(\014b\006pro"
-  "to3"
+  "build\"k\n\022ResourceAdvMessage\022\023\n\013server_uu"
+  "id\030\001 \001(\t\022\023\n\013server_host\030\002 \001(\t\022\023\n\013server_"
+  "port\030\003 \001(\r\022\026\n\016available_jobs\030\004 \001(\r\"@\n\010Fi"
+  "leInfo\022\020\n\010filename\030\001 \001(\t\022\020\n\010filesize\030\002 \001"
+  "(\004\022\020\n\010filehash\030\003 \001(\014\"\336\001\n\rClientMessage\022="
+  "\n\rsession_start\030\001 \001(\0132$.distbuild.Client"
+  "SessionStartRequestH\000\022=\n\rsession_abort\030\002"
+  " \001(\0132$.distbuild.ClientSessionAbortReque"
+  "stH\000\022D\n\021file_chunk_upload\030\003 \001(\0132\'.distbu"
+  "ild.ClientFileChunkUploadRequestH\000B\t\n\007co"
+  "ntent\"\345\001\n\031ClientSessionStartRequest\022\021\n\tc"
+  "lient_id\030\001 \001(\t\022\032\n\022client_working_dir\030\002 \001"
+  "(\t\022\032\n\022client_source_file\030\003 \001(\t\022\027\n\017client"
+  "_compiler\030\004 \001(\t\022\034\n\024client_cmd_line_args\030"
+  "\005 \003(\t\022\024\n\014client_idirs\030\006 \003(\t\0220\n\023required_"
+  "files_info\030\007 \003(\0132\023.distbuild.FileInfo\"B\n"
+  "\031ClientSessionAbortRequest\022\022\n\nsession_id"
+  "\030\001 \001(\t\022\021\n\tclient_id\030\002 \001(\t\"\216\001\n\034ClientFile"
+  "ChunkUploadRequest\022\022\n\nsession_id\030\001 \001(\t\022\020"
+  "\n\010filename\030\002 \001(\t\022\023\n\013sequence_no\030\003 \001(\004\022\016\n"
+  "\006offset\030\004 \001(\004\022\014\n\004data\030\005 \001(\014\022\025\n\ris_last_c"
+  "hunk\030\006 \001(\010\"\377\002\n\rServerMessage\022F\n\021session_"
+  "confirmed\030\001 \001(\0132).distbuild.ServerSessio"
+  "nConfirmedResponseH\000\022>\n\rsession_abort\030\002 "
+  "\001(\0132%.distbuild.ServerSessionAbortRespon"
+  "seH\000\022C\n\020file_up_complete\030\003 \001(\0132\'.distbui"
+  "ld.ServerFileUpCompleteResponseH\000\022L\n\023all"
+  "_req_up_complete\030\004 \001(\0132-.distbuild.Serve"
+  "rAllReqUploadCompleteResponseH\000\022H\n\027obj_f"
+  "ile_chunk_transmit\030\005 \001(\0132%.distbuild.Ser"
+  "verObjFileChunkResponseH\000B\t\n\007content\"L\n\036"
+  "ServerSessionConfirmedResponse\022\022\n\nsessio"
+  "n_id\030\001 \001(\t\022\026\n\016required_files\030\002 \003(\t\"C\n\032Se"
+  "rverSessionAbortResponse\022\022\n\nsession_id\030\001"
+  " \001(\t\022\021\n\tclient_id\030\002 \001(\t\"U\n\034ServerFileUpC"
+  "ompleteResponse\022\022\n\nsession_id\030\001 \001(\t\022\020\n\010f"
+  "ilename\030\002 \001(\t\022\017\n\007success\030\003 \001(\010\"8\n\"Server"
+  "AllReqUploadCompleteResponse\022\022\n\nsession_"
+  "id\030\001 \001(\t\"\325\001\n\032ServerObjFileChunkResponse\022"
+  "\022\n\nsession_id\030\001 \001(\t\022\032\n\022compiler_exit_cod"
+  "e\030\002 \001(\005\022\036\n\026compiler_call_duration\030\003 \001(\005\022"
+  "\027\n\017compiler_stdout\030\004 \001(\t\022\027\n\017compiler_std"
+  "err\030\005 \001(\t\022\020\n\010filesize\030\006 \001(\004\022\025\n\ris_last_c"
+  "hunk\030\007 \001(\010\022\014\n\004data\030\010 \001(\014b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_support_2fdistbuild_5fmessages_2eproto_deps[1] = {
 };
-static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_support_2fdistbuild_5fmessages_2eproto_sccs[11] = {
+static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_support_2fdistbuild_5fmessages_2eproto_sccs[12] = {
   &scc_info_ClientFileChunkUploadRequest_support_2fdistbuild_5fmessages_2eproto.base,
   &scc_info_ClientMessage_support_2fdistbuild_5fmessages_2eproto.base,
   &scc_info_ClientSessionAbortRequest_support_2fdistbuild_5fmessages_2eproto.base,
   &scc_info_ClientSessionStartRequest_support_2fdistbuild_5fmessages_2eproto.base,
   &scc_info_FileInfo_support_2fdistbuild_5fmessages_2eproto.base,
+  &scc_info_ResourceAdvMessage_support_2fdistbuild_5fmessages_2eproto.base,
   &scc_info_ServerAllReqUploadCompleteResponse_support_2fdistbuild_5fmessages_2eproto.base,
   &scc_info_ServerFileUpCompleteResponse_support_2fdistbuild_5fmessages_2eproto.base,
   &scc_info_ServerMessage_support_2fdistbuild_5fmessages_2eproto.base,
@@ -435,15 +467,323 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_sup
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_support_2fdistbuild_5fmessages_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_support_2fdistbuild_5fmessages_2eproto = {
-  false, false, descriptor_table_protodef_support_2fdistbuild_5fmessages_2eproto, "support/distbuild_messages.proto", 1683,
-  &descriptor_table_support_2fdistbuild_5fmessages_2eproto_once, descriptor_table_support_2fdistbuild_5fmessages_2eproto_sccs, descriptor_table_support_2fdistbuild_5fmessages_2eproto_deps, 11, 0,
+  false, false, descriptor_table_protodef_support_2fdistbuild_5fmessages_2eproto, "support/distbuild_messages.proto", 1792,
+  &descriptor_table_support_2fdistbuild_5fmessages_2eproto_once, descriptor_table_support_2fdistbuild_5fmessages_2eproto_sccs, descriptor_table_support_2fdistbuild_5fmessages_2eproto_deps, 12, 0,
   schemas, file_default_instances, TableStruct_support_2fdistbuild_5fmessages_2eproto::offsets,
-  file_level_metadata_support_2fdistbuild_5fmessages_2eproto, 11, file_level_enum_descriptors_support_2fdistbuild_5fmessages_2eproto, file_level_service_descriptors_support_2fdistbuild_5fmessages_2eproto,
+  file_level_metadata_support_2fdistbuild_5fmessages_2eproto, 12, file_level_enum_descriptors_support_2fdistbuild_5fmessages_2eproto, file_level_service_descriptors_support_2fdistbuild_5fmessages_2eproto,
 };
 
 // Force running AddDescriptors() at dynamic initialization time.
 static bool dynamic_init_dummy_support_2fdistbuild_5fmessages_2eproto = (static_cast<void>(::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_support_2fdistbuild_5fmessages_2eproto)), true);
 namespace distbuild {
+
+// ===================================================================
+
+void ResourceAdvMessage::InitAsDefaultInstance() {
+}
+class ResourceAdvMessage::_Internal {
+ public:
+};
+
+ResourceAdvMessage::ResourceAdvMessage(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
+  SharedCtor();
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:distbuild.ResourceAdvMessage)
+}
+ResourceAdvMessage::ResourceAdvMessage(const ResourceAdvMessage& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  server_uuid_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_server_uuid().empty()) {
+    server_uuid_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from._internal_server_uuid(),
+      GetArena());
+  }
+  server_host_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_server_host().empty()) {
+    server_host_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from._internal_server_host(),
+      GetArena());
+  }
+  ::memcpy(&server_port_, &from.server_port_,
+    static_cast<size_t>(reinterpret_cast<char*>(&available_jobs_) -
+    reinterpret_cast<char*>(&server_port_)) + sizeof(available_jobs_));
+  // @@protoc_insertion_point(copy_constructor:distbuild.ResourceAdvMessage)
+}
+
+void ResourceAdvMessage::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_ResourceAdvMessage_support_2fdistbuild_5fmessages_2eproto.base);
+  server_uuid_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  server_host_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::memset(&server_port_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&available_jobs_) -
+      reinterpret_cast<char*>(&server_port_)) + sizeof(available_jobs_));
+}
+
+ResourceAdvMessage::~ResourceAdvMessage() {
+  // @@protoc_insertion_point(destructor:distbuild.ResourceAdvMessage)
+  SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+void ResourceAdvMessage::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
+  server_uuid_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  server_host_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+}
+
+void ResourceAdvMessage::ArenaDtor(void* object) {
+  ResourceAdvMessage* _this = reinterpret_cast< ResourceAdvMessage* >(object);
+  (void)_this;
+}
+void ResourceAdvMessage::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
+void ResourceAdvMessage::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const ResourceAdvMessage& ResourceAdvMessage::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_ResourceAdvMessage_support_2fdistbuild_5fmessages_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void ResourceAdvMessage::Clear() {
+// @@protoc_insertion_point(message_clear_start:distbuild.ResourceAdvMessage)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  server_uuid_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  server_host_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  ::memset(&server_port_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&available_jobs_) -
+      reinterpret_cast<char*>(&server_port_)) + sizeof(available_jobs_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ResourceAdvMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // string server_uuid = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          auto str = _internal_mutable_server_uuid();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "distbuild.ResourceAdvMessage.server_uuid"));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // string server_host = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
+          auto str = _internal_mutable_server_host();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "distbuild.ResourceAdvMessage.server_host"));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // uint32 server_port = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 24)) {
+          server_port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // uint32 available_jobs = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
+          available_jobs_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* ResourceAdvMessage::_InternalSerialize(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:distbuild.ResourceAdvMessage)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string server_uuid = 1;
+  if (this->server_uuid().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_server_uuid().data(), static_cast<int>(this->_internal_server_uuid().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "distbuild.ResourceAdvMessage.server_uuid");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_server_uuid(), target);
+  }
+
+  // string server_host = 2;
+  if (this->server_host().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_server_host().data(), static_cast<int>(this->_internal_server_host().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "distbuild.ResourceAdvMessage.server_host");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_server_host(), target);
+  }
+
+  // uint32 server_port = 3;
+  if (this->server_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt32ToArray(3, this->_internal_server_port(), target);
+  }
+
+  // uint32 available_jobs = 4;
+  if (this->available_jobs() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt32ToArray(4, this->_internal_available_jobs(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:distbuild.ResourceAdvMessage)
+  return target;
+}
+
+size_t ResourceAdvMessage::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:distbuild.ResourceAdvMessage)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string server_uuid = 1;
+  if (this->server_uuid().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_server_uuid());
+  }
+
+  // string server_host = 2;
+  if (this->server_host().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_server_host());
+  }
+
+  // uint32 server_port = 3;
+  if (this->server_port() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
+        this->_internal_server_port());
+  }
+
+  // uint32 available_jobs = 4;
+  if (this->available_jobs() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
+        this->_internal_available_jobs());
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void ResourceAdvMessage::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:distbuild.ResourceAdvMessage)
+  GOOGLE_DCHECK_NE(&from, this);
+  const ResourceAdvMessage* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<ResourceAdvMessage>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:distbuild.ResourceAdvMessage)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:distbuild.ResourceAdvMessage)
+    MergeFrom(*source);
+  }
+}
+
+void ResourceAdvMessage::MergeFrom(const ResourceAdvMessage& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:distbuild.ResourceAdvMessage)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.server_uuid().size() > 0) {
+    _internal_set_server_uuid(from._internal_server_uuid());
+  }
+  if (from.server_host().size() > 0) {
+    _internal_set_server_host(from._internal_server_host());
+  }
+  if (from.server_port() != 0) {
+    _internal_set_server_port(from._internal_server_port());
+  }
+  if (from.available_jobs() != 0) {
+    _internal_set_available_jobs(from._internal_available_jobs());
+  }
+}
+
+void ResourceAdvMessage::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:distbuild.ResourceAdvMessage)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void ResourceAdvMessage::CopyFrom(const ResourceAdvMessage& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:distbuild.ResourceAdvMessage)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ResourceAdvMessage::IsInitialized() const {
+  return true;
+}
+
+void ResourceAdvMessage::InternalSwap(ResourceAdvMessage* other) {
+  using std::swap;
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
+  server_uuid_.Swap(&other->server_uuid_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  server_host_.Swap(&other->server_host_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ResourceAdvMessage, available_jobs_)
+      + sizeof(ResourceAdvMessage::available_jobs_)
+      - PROTOBUF_FIELD_OFFSET(ResourceAdvMessage, server_port_)>(
+          reinterpret_cast<char*>(&server_port_),
+          reinterpret_cast<char*>(&other->server_port_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ResourceAdvMessage::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
 
 // ===================================================================
 
@@ -4026,6 +4366,9 @@ void ServerObjFileChunkResponse::InternalSwap(ServerObjFileChunkResponse* other)
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace distbuild
 PROTOBUF_NAMESPACE_OPEN
+template<> PROTOBUF_NOINLINE ::distbuild::ResourceAdvMessage* Arena::CreateMaybeMessage< ::distbuild::ResourceAdvMessage >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::distbuild::ResourceAdvMessage >(arena);
+}
 template<> PROTOBUF_NOINLINE ::distbuild::FileInfo* Arena::CreateMaybeMessage< ::distbuild::FileInfo >(Arena* arena) {
   return Arena::CreateMessageInternal< ::distbuild::FileInfo >(arena);
 }

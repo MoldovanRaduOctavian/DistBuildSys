@@ -7,6 +7,8 @@
 
 #include <boost/asio.hpp>
 #include <boost/asio/ip/address.hpp>
+#include <boost/process.hpp>
+#include <boost/process/detail/child_decl.hpp>
 #include <boost/uuid/detail/sha1.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <google/protobuf/message.h>
@@ -173,21 +175,71 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         ipc_request.cmd_line_args
         );
     
+    // YOU SHOULD ONLY OFFLOAD LOCAL COMPILATION TO THE REMOTE
+
     // This is where the client decides which server to use
     // ... HOW DO WE DO THAT REALIABLY AND BALANCED?
     
-    ClientSession * client_session = 
-        co_await connect_to_server
-            (
-            "127.0.0.1", 
-            8082, 
-            std::move(compiler_call)
-            );
-   
-    UnixIpcResponse unix_ipc_response = 
-        co_await client_session->retrieve_unix_ipc_response();
-    
-    co_return unix_ipc_response;
+    CompilerCall::CallType compiler_call_type = compiler_call->get_compiler_call_type();
+    if (compiler_call_type == CompilerCall::CallType::CALL_TYPE_COMPILE) { 
+        ClientSession * client_session = 
+            co_await connect_to_server
+                (
+                "127.0.0.1", 
+                8082, 
+                std::move(compiler_call)
+                );
+       
+        UnixIpcResponse unix_ipc_response = 
+            co_await client_session->retrieve_unix_ipc_response();
+        
+        co_return unix_ipc_response;
 
+    }
+    else {
+        /* If the call type is linking or some other kind, then we only compile locally */
+        boost::process::ipstream stdout_stream;
+        boost::process::ipstream stderr_stream;
+        
+        boost::process::child compiler_process
+            (
+            compiler_call->get_compiler_type(),
+            boost::process::args(compiler_call->get_cmd_line_args()),
+            boost::process::std_out > stdout_stream,
+            boost::process::std_err > stderr_stream,
+            boost::process::start_dir = compiler_call->get_current_working_dir() 
+            );
+         
+        compiler_process.wait();
+
+        std::ostringstream stdout_oss;
+        stdout_oss << stdout_stream.rdbuf();
+        
+        std::ostringstream stderr_oss;
+        stderr_oss << stderr_stream.rdbuf(); 
+
+        auto compilation_end_ts = std::chrono::steady_clock::now();
+        auto compilation_duration = std::chrono::duration_cast<std::chrono::seconds>
+            (
+            compilation_end_ts - compiler_call->get_call_creation_time()
+            );
+
+        int compiler_exit_code = compiler_process.exit_code();
+        
+        const std::string stdout_str = stdout_oss.str();
+        const std::string stderr_str = stderr_oss.str();
+
+        compiler_call->set_call_duration(compilation_duration);
+        compiler_call->set_exit_code(compiler_exit_code);
+        compiler_call->set_stdout_content(stdout_str);
+        compiler_call->set_stderr_content(stderr_str);
+        
+        co_return UnixIpcResponse{
+            compiler_exit_code,
+            stdout_str,
+            stderr_str
+        };
+    }
+    
 }   /* Client::_handle_ipc_request() */
 
