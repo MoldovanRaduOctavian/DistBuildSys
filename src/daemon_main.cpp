@@ -5,6 +5,7 @@
 #include "includes_rework.hpp"
 #include "compiler_call.hpp"
 #include "client.hpp"
+#include "yaml_cfg.hpp"
 
 #include <boost/asio.hpp>
 
@@ -102,7 +103,7 @@ int main() {
     */    
 
     // I suppose this works well enough for now
-    
+    YamlConfig yaml_cfg;    
     auto client = Client(io_ctx);
     auto includes_cache = IncludesCache(client.get_system_include_dirs());    
     auto compiler_call = CompilerCall(includes_cache);

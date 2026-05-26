@@ -17,6 +17,7 @@
 boost::asio::awaitable<void> ClientSession::_handle_client_session() {
    
     try {
+        // This should end when the compilation is done
         for (;;) {
             
             distbuild::ServerMessage server_message;
@@ -28,6 +29,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                     // What do you do in case of abort???
                     co_await perform_local_compilation();
                     terminate_client_session();
+                    co_return;
                     break;
                 case distbuild::ServerMessage::kFileUpComplete:
                     // Do we even check the contents of this packet?
@@ -42,6 +44,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                         // Do we end the session?
                         co_await perform_local_compilation();
                         terminate_client_session();
+                        co_return;
                     }
 
                     break;
@@ -62,6 +65,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                         // Cleanup the current session
                         co_await perform_local_compilation();
                         terminate_client_session();
+                        co_return;
                     }
 
                     break;
@@ -216,7 +220,7 @@ boost::asio::awaitable<bool> ClientSession::_process_obj_file_chunk
     
     co_return true;
 
-}   /* ClientSession::_handle_client_session() */
+}   /* ClientSession::_process_obj_file_chunk() */
 
 
 

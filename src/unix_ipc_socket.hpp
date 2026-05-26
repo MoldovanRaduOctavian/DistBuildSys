@@ -46,8 +46,8 @@ struct UnixIpcResponse {
         stderr_content(_stderr_content)
         {};
     
-    UnixIpcResponse(const UnixIpcResponse&) = default;  // optional
-    UnixIpcResponse(UnixIpcResponse&&) = default;       // REQUIRED
+    UnixIpcResponse(const UnixIpcResponse&) = default;      
+    UnixIpcResponse(UnixIpcResponse&&) = default;   
     UnixIpcResponse& operator=(UnixIpcResponse&&) = default; 
 
 };

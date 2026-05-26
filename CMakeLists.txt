@@ -27,13 +27,13 @@ find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 find_package(spdlog REQUIRED)
 
-# add_executable(distbuild_wrapper src/compiler_wrapper_main.cpp)
-# target_link_libraries(distbuild_wrapper
-#    PRIVATE
-#        Boost::system
-#        Threads::Threads
-#        spdlog::spdlog_header_only
-#)
+include(FetchContent)
+FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG yaml-cpp-0.9.0
+)
+FetchContent_MakeAvailable(yaml-cpp)
 
 add_executable(distbuild_daemon 
     src/daemon_main.cpp
@@ -54,8 +54,10 @@ add_executable(distbuild_daemon
     src/client_views_storage.cpp
     src/compiler_manager.cpp
     src/distbuild_messages.pb.cc
+    src/yaml_cfg.cpp
 )
 target_link_libraries(distbuild_daemon
+    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
     Boost::system
     Boost::regex
@@ -84,10 +86,11 @@ add_executable(asio_test
     src/client_views_storage.cpp
     src/compiler_manager.cpp
     src/distbuild_messages.pb.cc
-
+    src/yaml_cfg.cpp
 )
 
 target_link_libraries(asio_test
+    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
     Boost::system
     Boost::regex
@@ -102,6 +105,7 @@ add_executable(unix_ipc_server
 )
 
 target_link_libraries(unix_ipc_server
+    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
     Boost::system
     Boost::regex
@@ -116,6 +120,7 @@ add_executable(unix_ipc_client
 )
 
 target_link_libraries(unix_ipc_client
+    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
     Boost::system
     Boost::regex
@@ -130,6 +135,7 @@ add_executable(distbuild_wrapper
 )
 
 target_link_libraries(unix_ipc_client
+    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
     Boost::system
     Boost::regex
