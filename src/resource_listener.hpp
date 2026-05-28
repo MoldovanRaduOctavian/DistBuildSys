@@ -2,8 +2,8 @@
 #define RESOURCE_LISTENER_HPP
 
 #include <array>
-#include <boost/asio/use_awaitable.hpp>
 #include <chrono>
+#include <optional>
 #include <unordered_map>
 
 #include <boost/asio.hpp>
@@ -44,6 +44,19 @@ public:
         {
             _start();
         };
+    
+    std::optional<ResourceListener::ServerInfo> pick_compilation_server() {
+        std::lock_guard<std::mutex> lock(_mtx);
+        for (auto it=_server_nodes.begin(); it != _server_nodes.end(); it++) {
+            if (it->second.available_jobs > 0) {
+                it->second.available_jobs--;
+                return it->second;
+            }
+        }
+
+        return std::nullopt;
+
+    }
 
 private:
     
@@ -83,6 +96,7 @@ private:
                 continue;
             }
             
+            std::lock_guard<std::mutex> lock(_mtx);
             ServerInfo server_info;
             server_info.server_uuid = resource_msg.server_uuid();
             server_info.server_ip = resource_msg.server_host();
@@ -91,6 +105,9 @@ private:
             server_info.last_seen = std::chrono::steady_clock::now();
             
             _server_nodes[server_info.server_uuid] = server_info;
+            std::cout << _server_nodes.at(server_info.server_uuid).server_ip
+                    << " : " << _server_nodes.at(server_info.server_uuid).server_port
+                    << '\n';
         }
 
     }
@@ -101,7 +118,8 @@ private:
             co_await _cleanup_timer.async_wait(boost::asio::use_awaitable);
 
             auto now = std::chrono::steady_clock::now();
-
+            
+            std::lock_guard<std::mutex> lock(_mtx);
             for (auto it = _server_nodes.begin(); it != _server_nodes.end(); ) {
                 auto info_age = std::chrono::duration_cast<std::chrono::seconds>(
                     now - it->second.last_seen
@@ -109,6 +127,8 @@ private:
                 
                 // This might be extremely broken
                 if (info_age.count() > 4) {
+                    std::cout << "CLEANED UP: " << it->second.server_uuid
+                            << ", " << it->second.server_ip << '\n';
                     it = _server_nodes.erase(it);
                 }
                 else {
@@ -129,6 +149,8 @@ private:
                 _udp_socket;
     boost::asio::steady_timer
                 _cleanup_timer;
+
+    mutable std::mutex _mtx;
     std::unordered_map<std::string, ServerInfo>
                 _server_nodes;
 

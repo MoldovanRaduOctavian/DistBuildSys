@@ -145,4 +145,35 @@ target_link_libraries(unix_ipc_client
     ${Protobuf_LIBRARIES}
 )
 
+add_executable(resource_adv_client
+    src/resource_adv_client.cpp
+    src/distbuild_messages.pb.cc
+)
+
+target_link_libraries(resource_adv_client
+    PUBLIC yaml-cpp::yaml-cpp
+    PRIVATE
+    Boost::system
+    Boost::regex
+    Boost::filesystem
+    Threads::Threads
+    spdlog::spdlog_header_only
+    ${Protobuf_LIBRARIES}
+)
+
+add_executable(resource_adv_server
+    src/resource_adv_server.cpp
+    src/distbuild_messages.pb.cc
+)
+
+target_link_libraries(resource_adv_server
+    PUBLIC yaml-cpp::yaml-cpp
+    PRIVATE
+    Boost::system
+    Boost::regex
+    Boost::filesystem
+    Threads::Threads
+    spdlog::spdlog_header_only
+    ${Protobuf_LIBRARIES}
+)
 

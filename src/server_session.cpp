@@ -213,8 +213,9 @@ void ServerSession::send_compilation_result()
         obj_file_stream.read(buffer.data(), CHUNK_SIZE);
         std::streamsize bytes_read = obj_file_stream.gcount();
 
-        if (bytes_read <= 0)
+        if (bytes_read <= 0) {
             break;
+        }
 
         distbuild::ServerMessage msg = build_msg();
         auto * chunk = msg.mutable_obj_file_chunk_transmit();

@@ -1,5 +1,7 @@
 #include "client.hpp"
 
+#include <boost/asio/steady_timer.hpp>
+#include <chrono>
 #include <fstream>
 #include <filesystem>
 #include <iostream>
@@ -182,11 +184,25 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
     
     CompilerCall::CallType compiler_call_type = compiler_call->get_compiler_call_type();
     if (compiler_call_type == CompilerCall::CallType::CALL_TYPE_COMPILE) { 
+        ResourceListener::ServerInfo server_node;
+        boost::asio::steady_timer find_sv_retry_timer(_io_ctx);
+        for (;;) {
+            auto server_info_opt = _resource_listener.pick_compilation_server();
+            if (server_info_opt) {
+                server_node = server_info_opt.value();
+                break;
+            }
+            else {
+                find_sv_retry_timer.expires_after(std::chrono::milliseconds(500));
+                co_await find_sv_retry_timer.async_wait(boost::asio::use_awaitable);
+            }
+        }
+
         ClientSession * client_session = 
             co_await connect_to_server
                 (
-                "127.0.0.1", 
-                8082, 
+                server_node.server_ip, 
+                server_node.server_port, 
                 std::move(compiler_call)
                 );
        

@@ -2,7 +2,6 @@
 #define RESOURCE_BROADCASTER_HPP
 
 #include <chrono>
-#include <iostream>
 
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -56,15 +55,17 @@ private:
     }
 
     boost::asio::awaitable<void> _run()
-    {
+    { 
         for (;;) {
             
             // Send the advertisement packets
             distbuild::ResourceAdvMessage resource_msg;
-            resource_msg.set_server_uuid("server_ip");
+            std::string server_uuid = "SERVER_UUID";
+            resource_msg.set_server_uuid(server_uuid);
             resource_msg.set_server_host(_server_ip);
             resource_msg.set_server_port(_server_port);
             resource_msg.set_available_jobs(8);
+
 
             std::string payload;
             resource_msg.SerializeToString(&payload);

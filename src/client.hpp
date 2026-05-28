@@ -13,6 +13,7 @@
 #include "compiler_call.hpp"
 #include "includes_rework.hpp"
 #include "unix_ipc_socket.hpp"
+#include "resource_listener.hpp"
 
 class Client {
 
@@ -30,6 +31,7 @@ public:
             [this](const UnixIpcRequest & ipc_request) -> boost::asio::awaitable<UnixIpcResponse> {
                 co_return co_await _handle_ipc_request(ipc_request);                
             }),
+        _resource_listener(io_ctx, 10458),
         _includes_cache(_system_include_dirs)
         {
         // _client_uuid could be read out of a YAML
@@ -97,6 +99,8 @@ private:
     // interacting with these things
     
     UnixIpcManager                  _unix_ipc_manager;
+    
+    ResourceListener                _resource_listener;
 
     CmdLineIncludeDirs              _system_include_dirs;
     
