@@ -2,8 +2,7 @@
 #define COMPILER_MANAGER_HPP
 
 #include <condition_variable>
-#include <iostream>
-#include <queue>
+#include <deque>
 #include <thread>
 #include <vector>
 
@@ -13,6 +12,8 @@ struct CompilationRequest {
     // If the ServerSession ptr is invalidated 
     // while a compilation request is being processed
     // this will blow up
+    // Holding a pointer to the ServerSession is disgusting
+    bool            invalidated;
     ServerSession * requester_session;
     std::string     compiler_name;
     std::vector<std::string> 
@@ -74,11 +75,23 @@ public:
         )
     {
         std::unique_lock<std::mutex> lock(_mtx);
-        _compile_task_queue.push(compilation_rqst);
+        _compile_task_queue.push_back(compilation_rqst);
         _cv.notify_one();
 
     }
     
+    void invalidate_requests_for_session
+        (
+        const ServerSession * server_session
+        )
+    {
+        for (CompilationRequest & request : _compile_task_queue) {
+            if (request.requester_session == server_session) {
+                request.invalidated = true;
+            }
+        }        
+    }
+
     size_t get_thread_pool_sz() const {
         std::unique_lock<std::mutex> lock(_mtx);
         return _thread_pool_sz;
@@ -86,6 +99,10 @@ public:
     
     size_t get_active_compile_jobs_ct() const {
         return _active_compile_jobs.load(std::memory_order_relaxed);
+    }
+    
+    size_t get_available_jobs() const {
+        return _thread_pool_sz - _active_compile_jobs;
     }
 
 private:
@@ -101,7 +118,7 @@ private:
     std::vector<std::thread> 
                     _worker_threads;
     
-    std::queue<CompilationRequest>
+    std::deque<CompilationRequest>
                     _compile_task_queue;
 
     mutable std::mutex      

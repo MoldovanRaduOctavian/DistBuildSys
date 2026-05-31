@@ -12,7 +12,7 @@ int main(int argc, char ** argv) {
     boost::asio::io_context io_ctx;
     if (argc == 2 && std::strcmp(argv[1], "server") == 0) {
         std::cout << "Welcome to the server!\n";
-        Server server(io_ctx, "127.0.0.1", 8082);
+        Server server(io_ctx, boost::uuids::uuid{}, "127.0.0.1", 8082);
         server.start_server();
 
         std::vector<std::thread> io_ctx_threads;

@@ -7,6 +7,7 @@ int main() {
     ResourceBroadcaster resource_broadcaster{
         io_ctx,
         10458,
+        boost::uuids::uuid{},
         663,
         "192.168.1.14"
     };

@@ -87,23 +87,28 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
 
 
 void ClientSession::terminate_client_session() {
-    std::lock_guard<std::mutex> lock(_mtx);
+    try {
+        std::lock_guard<std::mutex> lock(_mtx);
     
-    distbuild::ClientMessage client_message;
-    auto * client_session_abort_rqst = client_message.mutable_session_abort();
-    client_session_abort_rqst->set_session_id(boost::uuids::to_string(_session_uuid));
-    client_session_abort_rqst->set_client_id
-        (
-        boost::uuids::to_string(_client.get_client_uuid())
-        );
-    send_msg(client_message);
+        distbuild::ClientMessage client_message;
+        auto * client_session_abort_rqst = client_message.mutable_session_abort();
+        client_session_abort_rqst->set_session_id(boost::uuids::to_string(_session_uuid));
+        client_session_abort_rqst->set_client_id
+            (
+            boost::uuids::to_string(_client.get_client_uuid())
+            );
+        send_msg(client_message);
+            
+        boost::system::error_code ec;
+        auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
+        _session_socket.close();
         
-    // This should maybe be placed on the same strand as message sending
-    boost::system::error_code ec;
-    auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
-    _session_socket.close();
-    
-    _client.remove_client_session(_session_uuid);
+        _client.remove_client_session(_session_uuid);
+
+    }
+    catch (const std::exception & e) {
+        std::cout << e.what() << '\n';
+    }
 
 }   /* ClientSession::terminate_client_session() */
 

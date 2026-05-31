@@ -96,6 +96,7 @@ void ClientView::add_session
                         session_socket,
     const distbuild::ClientSessionStartRequest &
                         session_start_msg,
+    Server *            server,
     CompilerManager *   compiler_manager
     )
 {
@@ -107,6 +108,7 @@ void ClientView::add_session
             (
             boost::uuids::to_string(session_uuid),
             std::move(session_socket),
+            server,
             this,
             compiler_manager,
             session_uuid,
@@ -213,6 +215,21 @@ void ClientView::add_session
     try_compile_for_active_sessions();
 
 }   /* ClientView::add_session() */
+
+
+void ClientView::remove_session
+    (
+    const boost::uuids::uuid & session_uuid
+    )
+{
+    std::lock_guard<std::mutex> lock(_mtx);
+    const std::string session_uuid_str = boost::uuids::to_string(session_uuid);
+    if (_associated_sessions.find(session_uuid_str) != _associated_sessions.end()) {
+        _associated_sessions.erase(session_uuid_str);
+    }
+
+}   /* ClientView::remove_session() */
+
 
 
 void ClientView::try_compile_for_active_sessions

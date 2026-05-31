@@ -14,6 +14,7 @@
 #include "distbuild_messages.pb.h"
 #include "file_state_view.hpp"
 
+class Server;
 class ServerSession;
 
 // The view of a client state, from a server's perspective
@@ -76,16 +77,22 @@ public:
         return true;
 
     }
-
+    
     void add_session
         (
         boost::asio::ip::tcp::socket &&
                             session_socket,
         const distbuild::ClientSessionStartRequest &
                             session_start_msg,
+        Server *            server,
         CompilerManager *   compiler_manager
         );
     
+    void remove_session
+        (
+        const boost::uuids::uuid & session_uuid
+        );   
+
     void try_compile_for_active_sessions(bool lock_session_mtx = false);
 
     const std::string & get_curr_working_dir() const {

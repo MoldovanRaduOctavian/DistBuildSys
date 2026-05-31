@@ -18,25 +18,53 @@ void CompilerManager::_worker_loop() {
         {     
             std::unique_lock<std::mutex> lock(_mtx);
             _cv.wait(lock, [&] {
-                return _stop_threads || !_compile_task_queue.empty(); 
+                return _stop_threads || 
+                      (!_compile_task_queue.empty() &&
+                       _active_compile_jobs.load(std::memory_order_relaxed) < _thread_pool_sz
+                      ); 
             });
 
             if (_stop_threads && _compile_task_queue.empty()) {
                 return;
             }
+            
+            if (_active_compile_jobs.load(std::memory_order_relaxed) >= _thread_pool_sz) {
+                continue;
+            }
 
             compile_task = _compile_task_queue.front();
-            _compile_task_queue.pop();
+            _compile_task_queue.pop_front();
+            
+            if (compile_task.invalidated == true) {
+                // If the server session was already terminated
+                // then just remove the associated compilation request
+                continue;
+            }
+
+            _active_compile_jobs.fetch_add(1, std::memory_order_relaxed); 
+
         }
         
         // We need to only allow N source files to be compiled in parallel
-        _active_compile_jobs.fetch_add(1, std::memory_order_relaxed); 
+        compile_task.requester_session->set_available_compiler_jobs(
+            _thread_pool_sz - _active_compile_jobs.load(std::memory_order_relaxed)
+        );
 
         // Call the function which compiles the file
         CompilationOutput compilation_output = _compile_src(compile_task);
-        
+        {
+        std::lock_guard<std::mutex> lock(_mtx); 
         _active_compile_jobs.fetch_sub(1, std::memory_order_relaxed);
+        }        
 
+        _cv.notify_all();
+
+        compile_task.requester_session->set_available_compiler_jobs(
+            _thread_pool_sz - _active_compile_jobs.load(std::memory_order_relaxed)
+        );
+        
+        // If the pointer to the server sessions invalidates while we are inside
+        // this, everything will break
         // How do I signal the session that the compilation has ended ???
         // I need a server session method which publishes the compilation results
         compile_task.requester_session->publish_compilation_results(compilation_output);

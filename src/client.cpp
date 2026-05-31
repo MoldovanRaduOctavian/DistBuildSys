@@ -209,6 +209,9 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         UnixIpcResponse unix_ipc_response = 
             co_await client_session->retrieve_unix_ipc_response();
         
+        // The compilation session has finished
+        // So we should dispose of it
+        client_session->terminate_client_session();
         co_return unix_ipc_response;
 
     }

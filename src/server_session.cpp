@@ -14,6 +14,7 @@
 #include "file_state_view.hpp"
 #include "object_storage.hpp"
 #include "proto_io.hpp"
+#include "server.hpp"
 
 void ServerSession::preprocess_compiler_call
     (
@@ -109,7 +110,7 @@ void ServerSession::try_request_src_compilation(bool lock_mtx) {
             // Launch a compiler call thread
             // The compiler manager has a thread pool
             _compiler_manager->add_compilation_request(CompilationRequest{
-                this, _compiler_name, _cmd_line_args, _current_working_dir
+                false, this, _compiler_name, _cmd_line_args, _current_working_dir
             });
 
             _is_compiler_running = true;
@@ -128,7 +129,7 @@ void ServerSession::try_request_src_compilation(bool lock_mtx) {
             // Launch a compiler call thread
             // The compiler manager has a thread pool
             _compiler_manager->add_compilation_request(CompilationRequest{
-                this, _compiler_name, _cmd_line_args, _current_working_dir
+                false, this, _compiler_name, _cmd_line_args, _current_working_dir
             });
 
             _is_compiler_running = true;
@@ -139,7 +140,9 @@ void ServerSession::try_request_src_compilation(bool lock_mtx) {
 
 }   /* ServerSession::request_src_compilation() */
 
-
+// This seems absolutely fucking horrendous to be called
+// from the compiler manager
+// we should use channels
 void ServerSession::publish_compilation_results
     (
     const CompilationOutput & compilation_out
@@ -235,57 +238,67 @@ void ServerSession::send_compilation_result()
         send_msg(msg);
     }
 
-    std::cout << "This is after the obj file was sent!!!\n";
-
 }
 
 
 boost::asio::awaitable<void> ServerSession::handle_session() {
-    
-    for (;;) {
-        // receive and handle all types of packets from the client
-        distbuild::ClientMessage client_message;
-        co_await proto_io::receive_msg(_session_socket, client_message);
-        switch (client_message.content_case()) {
-            case distbuild::ClientMessage::kSessionStart:
-                _parent_client_view->update_last_active_ts();
-                break;
+    try {
+        
+        for (;;) {
+            // receive and handle all types of packets from the client
+            distbuild::ClientMessage client_message;
+            co_await proto_io::receive_msg(_session_socket, client_message);
+            switch (client_message.content_case()) {
+                case distbuild::ClientMessage::kSessionStart:
+                    _parent_client_view->update_last_active_ts();
+                    break;
 
-            case distbuild::ClientMessage::kFileChunkUpload: {
-                _parent_client_view->update_last_active_ts();
+                case distbuild::ClientMessage::kFileChunkUpload: {
+                    _parent_client_view->update_last_active_ts();
 
-                auto file_chunk_msg = 
-                    std::make_shared<distbuild::ClientFileChunkUploadRequest>
-                        (
-                        client_message.file_chunk_upload()    
-                        );
-                
-                std::cout << "Received filename: " << file_chunk_msg->filename() << '\n';
-
-                // Does file_chunk_msg get invalidated by the time it
-                // is passed to process_file_chunk
-                bool chunk_upload_success = process_file_chunk(file_chunk_msg); 
-                if (chunk_upload_success == false) {
-                    distbuild::ServerMessage session_abort_msg;
-                    session_abort_msg.mutable_session_abort()->set_session_id
-                        (
-                        boost::uuids::to_string(_session_uuid)
-                        );
+                    auto file_chunk_msg = 
+                        std::make_shared<distbuild::ClientFileChunkUploadRequest>
+                            (
+                            client_message.file_chunk_upload()    
+                            );
                     
-                    // Sending messages on multiple threads is inherently dangerous
-                    send_msg(session_abort_msg);
+                    std::cout << "Received filename: " << file_chunk_msg->filename() << '\n';
+
+                    // Does file_chunk_msg get invalidated by the time it
+                    // is passed to process_file_chunk
+                    bool chunk_upload_success = process_file_chunk(file_chunk_msg); 
+                    if (chunk_upload_success == false) {
+                        distbuild::ServerMessage session_abort_msg;
+                        session_abort_msg.mutable_session_abort()->set_session_id
+                            (
+                            boost::uuids::to_string(_session_uuid)
+                            );
+                        
+                        send_msg(session_abort_msg);
+
+                    }
+
+                    break;
 
                 }
+                
+                case distbuild::ClientMessage::kSessionAbort:
+                    // We need to dispose of this session
+                    terminate_server_session();
+                    co_return;
+                    break;
 
-                break;
-
+                default:
+                    break;
             }
-
-            default:
-                break;
         }
-    }
 
+    }
+    catch (std::exception & e) {
+        std::cout << e.what() << '\n';
+        terminate_server_session();
+    }
+        
 }   /* ServerSession::handle_session() */
 
 
@@ -457,6 +470,20 @@ bool ServerSession::process_file_chunk
 }   /* ServerSession::process_file_chunk() */
 
 
+void ServerSession::terminate_server_session() {
+    std::lock_guard<std::mutex> lock(_mtx);
+    
+    _compiler_manager->invalidate_requests_for_session(this);
+
+    boost::system::error_code ec;
+    auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
+    _session_socket.close();
+    
+    _parent_client_view->remove_session(_session_uuid);
+
+}   /* ServerSession::terminate_server_session() */
+
+
 void ServerSession::send_msg
     (
     const distbuild::ServerMessage & msg
@@ -509,4 +536,16 @@ boost::asio::awaitable<void> ServerSession::_writer_loop() {
     _write_in_progress = false;
 
 }   /* ServerSession::_writer_loop() */
+
+
+void ServerSession::set_available_compiler_jobs
+    (
+    size_t available_jobs
+    ) 
+{
+    _server->set_advertiser_available_jobs(available_jobs);
+
+}   /* ServerSession::set_available_compiler_jobs */
+
+
 

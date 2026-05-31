@@ -16,9 +16,9 @@
 #include "distbuild_messages.pb.h"
 #include "file_state_view.hpp"
 
-
 class CompilerManager;
 struct CompilationOutput;
+class Server;
 
 class ServerSession {
 
@@ -28,6 +28,7 @@ public:
         (
         boost::asio::ip::tcp::socket && 
                                 session_socket,
+        Server *                server,
         ClientView *            parent_client_view,
         CompilerManager *       compiler_manager,
         const boost::uuids::uuid &   
@@ -37,6 +38,7 @@ public:
         ) :
         _session_socket(std::move(session_socket)),
         _compiler_manager(compiler_manager),
+        _server(server),
         _parent_client_view(parent_client_view),
         _session_uuid(session_uuid),
         _current_working_dir(parent_client_view->get_curr_working_dir()),
@@ -113,6 +115,10 @@ public:
         (
         const distbuild::ServerMessage & msg
         );
+    
+    void set_available_compiler_jobs(size_t available_jobs); 
+
+    void terminate_server_session(); 
 
 private:
 
@@ -124,7 +130,7 @@ private:
     std::deque<std::string>         _write_queue;
     bool                            _write_in_progress;
 
-    // DO NOT FORGET TO INITIALIZE _COMPILER_MANAGER
+    Server *                        _server;
     CompilerManager *               _compiler_manager;
     ClientView *                    _parent_client_view;
     boost::uuids::uuid              _session_uuid;
