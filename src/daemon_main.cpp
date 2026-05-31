@@ -68,13 +68,15 @@ private:
 
 int main() {
     boost::asio::io_context io_ctx;
+
+
     // auto                    res_adv = 
     //     ResourceAdvertisementService(io_ctx);
         
     // CmdLineIncludeDirs  cmd_line_includes_1{"clang"};
     // IncludesCache       includes_cache;
     
-    /*
+#if 0    
     auto cold_cache_start = std::chrono::high_resolution_clock::now();
     auto src_file_parser_1 = SourceFileParser(cmd_line_includes_1, includes_cache);
     bool status = src_file_parser_1.parse_source_file_includes(
@@ -100,11 +102,14 @@ int main() {
 
     std::cout << "Hot cache duration: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(hot_cache_duration) << '\n';
-    */    
 
     // I suppose this works well enough for now
-    YamlConfig yaml_cfg;    
-    auto client = Client(io_ctx);
+    YamlConfig & yaml_cfg = YamlConfig::instance();
+    yaml_cfg.load_cfg("./distbuild_cfg.yaml");
+    std::cout << yaml_cfg.node_ip << " " << yaml_cfg.node_uuid << " \n"
+             << yaml_cfg.compiler_threads << '\n';
+    
+    auto client = Client(io_ctx, yaml_cfg.node_advertising_port, yaml_cfg.compiler_threads);
     auto includes_cache = IncludesCache(client.get_system_include_dirs());    
     auto compiler_call = CompilerCall(includes_cache);
      
@@ -140,11 +145,11 @@ int main() {
               << std::chrono::duration_cast<std::chrono::milliseconds>(hot_cache_duration) << '\n';
 
 
-
     // So the caching does not work at all, fucking great
     // Debug that next, otherwise I think the detected
     // dependencies should be alright
-    
+#endif
+
 
     // io_ctx.run();
     return 0;

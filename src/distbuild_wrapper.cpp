@@ -10,7 +10,6 @@
 
 #include "unix_ipc_socket.hpp"
 
-
 static void append_u32(
     std::vector<uint8_t>& out,
     uint32_t value)
@@ -186,12 +185,14 @@ UnixIpcResponse send_request_to_distbuild
 }
 
 int main(int argc, char ** argv ) {
-    
+
+#if 0
     if (argc < 3) {
         std::cerr << "distbuild: Not enough cmd line args\n";
         return 1;
     }
-
+#endif
+    
     auto environment_variables = boost::this_process::environment();
     
     boost::asio::io_context io_ctx;
@@ -200,10 +201,21 @@ int main(int argc, char ** argv ) {
 
     // if (environment_variables.find(DISTBUILD_PATH) != environment_variables.end()) {
     if (true) {
+#if 0
         std::vector<std::string> cmd_args;
         for (int arg_idx = 1; arg_idx < argc; ++arg_idx) {
             cmd_args.emplace_back(argv[arg_idx]);
         }
+#endif
+        
+        std::vector<std::string> cmd_args = {
+        "/usr/bin/clang++", "-DBOOST_ATOMIC_DYN_LINK", "-DBOOST_ATOMIC_NO_LIB", "-DBOOST_FILESYSTEM_DYN_LINK", 
+        "-g", "-Wall", "-Wextra", "-Wshadow", "-std=c++20", "-MD", "-MT", 
+        "CMakeFiles/distbuild_daemon.dir/src/client_session.cpp.o", "-o", 
+        "CMakeFiles/distbuild_daemon.dir/src/client_session.cpp.o", "-c", 
+        "/home/radu/distbuild/DistBuildSys/src/client_session.cpp"
+
+        };
 
         distbuild_response = send_request_to_distbuild(io_ctx, cmd_args);        
 

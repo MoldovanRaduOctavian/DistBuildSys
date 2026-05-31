@@ -9,6 +9,8 @@
 
 #include <boost/uuid/detail/sha1.hpp>
 
+#include "yaml_cfg.hpp"
+
 using sha1_type = boost::uuids::detail::sha1::digest_type;
 
 struct CmdLineIncludeDirs {
@@ -19,7 +21,7 @@ struct CmdLineIncludeDirs {
 
     CmdLineIncludeDirs()
     {
-        find_system_includes("usr/bin/clang++");
+        find_system_includes(YamlConfig::instance().compiler_bin);
     };
     
     bool find_system_includes

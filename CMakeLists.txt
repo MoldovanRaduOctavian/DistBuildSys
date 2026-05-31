@@ -26,14 +26,11 @@ find_package(Protobuf REQUIRED)
 
 find_package(Threads REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
-include(FetchContent)
-FetchContent_Declare(
-    yaml-cpp
-    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-    GIT_TAG yaml-cpp-0.9.0
-)
-FetchContent_MakeAvailable(yaml-cpp)
+add_compile_options(-fsanitize=thread)
+add_link_options(-fuse-ld=lld)
+add_link_options(-fsanitize=thread)
 
 add_executable(distbuild_daemon 
     src/daemon_main.cpp
@@ -57,8 +54,8 @@ add_executable(distbuild_daemon
     src/yaml_cfg.cpp
 )
 target_link_libraries(distbuild_daemon
-    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
+    yaml-cpp
     Boost::system
     Boost::regex
     Boost::filesystem
@@ -90,8 +87,8 @@ add_executable(asio_test
 )
 
 target_link_libraries(asio_test
-    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
+    yaml-cpp
     Boost::system
     Boost::regex
     Boost::filesystem
@@ -102,11 +99,30 @@ target_link_libraries(asio_test
 
 add_executable(unix_ipc_server
     src/unix_server_test.cpp
+    src/includes_rework.cpp
+    src/compiler_call.cpp
+    src/lru_storage.cpp
+    src/source_storage.cpp
+    src/object_storage.cpp
+    src/client.cpp
+    src/client_session.cpp
+    src/dep_files.cpp
+    src/unix_ipc_socket.cpp
+    src/compiler_call.cpp
+    src/server.cpp
+    src/server_session.cpp
+    src/proto_io.cpp
+    src/client_view.cpp
+    src/client_views_storage.cpp
+    src/compiler_manager.cpp
+    src/distbuild_messages.pb.cc
+    src/yaml_cfg.cpp
+
 )
 
 target_link_libraries(unix_ipc_server
-    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
+    yaml-cpp
     Boost::system
     Boost::regex
     Boost::filesystem
@@ -117,11 +133,30 @@ target_link_libraries(unix_ipc_server
 
 add_executable(unix_ipc_client
     src/unix_client_test.cpp
+    src/includes_rework.cpp
+    src/compiler_call.cpp
+    src/lru_storage.cpp
+    src/source_storage.cpp
+    src/object_storage.cpp
+    src/client.cpp
+    src/client_session.cpp
+    src/dep_files.cpp
+    src/unix_ipc_socket.cpp
+    src/compiler_call.cpp
+    src/server.cpp
+    src/server_session.cpp
+    src/proto_io.cpp
+    src/client_view.cpp
+    src/client_views_storage.cpp
+    src/compiler_manager.cpp
+    src/distbuild_messages.pb.cc
+    src/yaml_cfg.cpp
+
 )
 
 target_link_libraries(unix_ipc_client
-    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
+    yaml-cpp
     Boost::system
     Boost::regex
     Boost::filesystem
@@ -132,11 +167,30 @@ target_link_libraries(unix_ipc_client
 
 add_executable(distbuild_wrapper
     src/distbuild_wrapper.cpp
+    src/includes_rework.cpp
+    src/compiler_call.cpp
+    src/lru_storage.cpp
+    src/source_storage.cpp
+    src/object_storage.cpp
+    src/client.cpp
+    src/client_session.cpp
+    src/dep_files.cpp
+    src/unix_ipc_socket.cpp
+    src/compiler_call.cpp
+    src/server.cpp
+    src/server_session.cpp
+    src/proto_io.cpp
+    src/client_view.cpp
+    src/client_views_storage.cpp
+    src/compiler_manager.cpp
+    src/distbuild_messages.pb.cc
+    src/yaml_cfg.cpp
+
 )
 
 target_link_libraries(unix_ipc_client
-    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
+    yaml-cpp
     Boost::system
     Boost::regex
     Boost::filesystem
@@ -151,8 +205,8 @@ add_executable(resource_adv_client
 )
 
 target_link_libraries(resource_adv_client
-    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
+    yaml-cpp
     Boost::system
     Boost::regex
     Boost::filesystem
@@ -167,8 +221,8 @@ add_executable(resource_adv_server
 )
 
 target_link_libraries(resource_adv_server
-    PUBLIC yaml-cpp::yaml-cpp
     PRIVATE
+    yaml-cpp
     Boost::system
     Boost::regex
     Boost::filesystem

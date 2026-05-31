@@ -105,9 +105,11 @@ private:
             server_info.last_seen = std::chrono::steady_clock::now();
             
             _server_nodes[server_info.server_uuid] = server_info;
+#if 0
             std::cout << _server_nodes.at(server_info.server_uuid).server_ip
                     << " : " << _server_nodes.at(server_info.server_uuid).server_port
                     << '\n';
+#endif
         }
 
     }

@@ -80,12 +80,13 @@ public:
         boost::asio::io_context & 
                                 io_ctx,
         const std::string &     ipc_socket_path,
+        int                     worker_pool_sz,
         RequestHandler          request_handler
         ) :
         _io_ctx(io_ctx),
         _ipc_acceptor(io_ctx),
         _ipc_socket_path(ipc_socket_path),
-        _worker_pool(std::thread::hardware_concurrency()),
+        _worker_pool(worker_pool_sz),
         _active_connections(0),
         _request_handler(request_handler)
         {};
@@ -108,7 +109,7 @@ public:
             _accept_loop(),
             boost::asio::detached
             );
-
+        
     }
 
 

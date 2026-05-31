@@ -12,6 +12,7 @@ int main() {
         (
         io_ctx,
         "/tmp/distbuild_ipc.sock",
+        8,
         [](const UnixIpcRequest & request) -> boost::asio::awaitable<UnixIpcResponse> {
             std::cout << "UNIX IPC REQUEST" << '\n';
             std::cout << "CWD: " << request.current_working_dir << '\n';

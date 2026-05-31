@@ -22,28 +22,26 @@ public:
         const boost::uuids::uuid &
                             server_uuid,
         const std::string & server_ip,
-        uint16_t            server_port
+        uint16_t            server_port,
+        uint16_t            advertising_port,
+        int                 worker_threads_cnt
         ) :
         _io_ctx(io_ctx),
-        _tcp_acceptor
-            (
-            io_ctx
-            ),
-        // This should not be hardcoded
-        // It will be pulled from the YAML cfg
-        _compiler_manager(8),
+        _tcp_acceptor(io_ctx),
+        _compiler_manager(worker_threads_cnt),
         _resource_broadcaster
             (
             io_ctx,
-            // The broadcast port should be pulled from the YAML cfg
-            10458,
+            advertising_port,
             server_uuid,
             server_port,
             server_ip
             ),
         _server_uuid(server_uuid),
         _server_ip(server_ip),
-        _server_port(server_port)
+        _server_port(server_port),
+        _advertising_port(advertising_port),
+        _worker_threads_cnt(worker_threads_cnt)
     {};
     
     void start_server() {
@@ -80,6 +78,8 @@ private:
     boost::uuids::uuid              _server_uuid;
     std::string                     _server_ip;
     uint16_t                        _server_port;
+    uint16_t                        _advertising_port;
+    int                             _worker_threads_cnt;
 
 };
 

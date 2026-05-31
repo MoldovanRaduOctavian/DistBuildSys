@@ -22,20 +22,24 @@ public:
     Client
         (
         boost::asio::io_context & 
-                            io_ctx
+                            io_ctx,
+        uint16_t            advertising_port,
+        int                 worker_pool_sz
         ) :
         _io_ctx(io_ctx),
         _unix_ipc_manager(
             io_ctx, 
             "/tmp/distbuild_ipc.sock",
+            worker_pool_sz,
             [this](const UnixIpcRequest & ipc_request) -> boost::asio::awaitable<UnixIpcResponse> {
                 co_return co_await _handle_ipc_request(ipc_request);                
             }),
-        _resource_listener(io_ctx, 10458),
+        _resource_listener(io_ctx, advertising_port),
         _includes_cache(_system_include_dirs)
         {
         // _client_uuid could be read out of a YAML
         // and generated if it does not already exist
+        _unix_ipc_manager.start_ipc_manager();
         };
 
     boost::asio::awaitable<void> connect_to_server_v1(const char * req_file);

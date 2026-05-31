@@ -3,37 +3,23 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
 
 #include "yaml-cpp/yaml.h"
 
 class YamlConfig {
 
 public:
-    
-    struct Server {
-        std::string ip;
-        int port;
-
-        Server
-            (
-            const std::string & _ip, 
-            int _port
-            ) :
-        ip(_ip),
-        port(_port)
-        {};
-    };
-    
+        
     YamlConfig() = default;
     YamlConfig(const YamlConfig &) = delete;
     YamlConfig & operator=(const YamlConfig &) = delete;
 
-
+    std::string node_uuid;
+    std::string node_ip;
+    uint32_t    node_main_port;
+    uint32_t    node_advertising_port;
     std::string compiler_bin;
     int         compiler_threads;
-    std::vector<Server>
-                servers;
     
     static YamlConfig & instance() {
         static YamlConfig cfg_instance;
@@ -47,6 +33,15 @@ public:
     {
         try {
             YAML::Node root = YAML::LoadFile(cfg_path);
+            
+            node_uuid =
+                root["node"]["uuid"].as<std::string>();
+            node_ip = 
+                root["node"]["ip"].as<std::string>();
+            node_main_port = 
+                root["node"]["main_port"].as<uint32_t>();
+            node_advertising_port =
+                root["node"]["advertising_port"].as<uint32_t>();
 
             compiler_bin =
                 root["compiler"]["binary"].as<std::string>();
@@ -54,13 +49,7 @@ public:
             compiler_threads = 
                 root["compiler"]["threads"].as<int>();
             
-            servers.clear();
-            for (const auto & node : root["servers"]) {
-                servers.emplace_back(
-                    node["ip"].as<std::string>(),
-                    node["port"].as<int>()
-                );                
-            }
+            return true;
 
         }
         catch (const std::exception & e) {
