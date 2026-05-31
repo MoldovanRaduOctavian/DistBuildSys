@@ -29,6 +29,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
                         compiler_call
     )
 {   
+    // This deallocates when the function ends ....
     auto client_session = std::make_unique<ClientSession>(_io_ctx, *this, *compiler_call);
     distbuild::ClientMessage client_message;
     auto * client_session_start_rqst = 
@@ -114,8 +115,8 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
             session_uuid
             );
 
-    std::lock_guard<std::mutex> lock(_mtx);
     if (session_creation_success == true) {
+        std::lock_guard<std::mutex> lock(_mtx);
         _client_sessions.try_emplace
             (
             boost::uuids::to_string(session_uuid),
@@ -126,18 +127,32 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
             boost::uuids::to_string(session_uuid),
             std::move(compiler_call)
             );
+        co_return _client_sessions[boost::uuids::to_string(session_uuid)].get();
     }
     else {
+        // THIS IS BROKEN THIS NEEDS TO BE FIXED!!!
         // ... We need to invalidate the session somehow
-        co_await client_session->perform_local_compilation();
         client_session->terminate_client_session();
         // Send the results back to the wrapper
         // Perform a session cleanup
+        co_await client_session->perform_local_compilation();
+        _client_sessions.try_emplace
+            (
+            boost::uuids::to_string(session_uuid),
+            std::move(client_session) 
+            );
+        _client_compiler_calls.try_emplace
+            (
+            boost::uuids::to_string(session_uuid),
+            std::move(compiler_call)
+            ); 
+        co_return _client_sessions[boost::uuids::to_string(session_uuid)].get();
 
     }
     
-    co_return client_session.get();
-    
+    // When you move a unique ptr, the unique_ptr.get() gets 
+    // set to nullptr
+ 
 }   /* Client::connect_to_server() */
 
 
@@ -205,7 +220,7 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
                 server_node.server_port, 
                 std::move(compiler_call)
                 );
-       
+        
         UnixIpcResponse unix_ipc_response = 
             co_await client_session->retrieve_unix_ipc_response();
         
@@ -213,7 +228,8 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         // So we should dispose of it
         client_session->terminate_client_session();
         co_return unix_ipc_response;
-
+        
+        // This is fatal, we must not get to this point
     }
     else {
         /* If the call type is linking or some other kind, then we only compile locally */

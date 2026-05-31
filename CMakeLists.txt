@@ -28,9 +28,7 @@ find_package(Threads REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-add_compile_options(-fsanitize=thread)
 add_link_options(-fuse-ld=lld)
-add_link_options(-fsanitize=thread)
 
 add_executable(distbuild_daemon 
     src/daemon_main.cpp
@@ -61,7 +59,8 @@ target_link_libraries(distbuild_daemon
     Boost::filesystem
     Threads::Threads
     spdlog::spdlog_header_only
-    ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    protobuf::libprotobuf
 )
 
 add_executable(asio_test 
@@ -94,8 +93,13 @@ target_link_libraries(asio_test
     Boost::filesystem
     Threads::Threads
     spdlog::spdlog_header_only
-    ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    protobuf::libprotobuf
 )
+
+# Thread sanitizer crashes the program nice
+# target_compile_options(asio_test PRIVATE -fsanitize=thread)
+# target_link_options(asio_test PRIVATE -fsanitize=thread)
 
 add_executable(unix_ipc_server
     src/unix_server_test.cpp
@@ -128,7 +132,8 @@ target_link_libraries(unix_ipc_server
     Boost::filesystem
     Threads::Threads
     spdlog::spdlog_header_only
-    ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    protobuf::libprotobuf
 )
 
 add_executable(unix_ipc_client
@@ -162,33 +167,17 @@ target_link_libraries(unix_ipc_client
     Boost::filesystem
     Threads::Threads
     spdlog::spdlog_header_only
-    ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    protobuf::libprotobuf
 )
 
 add_executable(distbuild_wrapper
-    src/distbuild_wrapper.cpp
-    src/includes_rework.cpp
-    src/compiler_call.cpp
-    src/lru_storage.cpp
-    src/source_storage.cpp
-    src/object_storage.cpp
-    src/client.cpp
-    src/client_session.cpp
-    src/dep_files.cpp
-    src/unix_ipc_socket.cpp
-    src/compiler_call.cpp
-    src/server.cpp
-    src/server_session.cpp
-    src/proto_io.cpp
-    src/client_view.cpp
-    src/client_views_storage.cpp
-    src/compiler_manager.cpp
     src/distbuild_messages.pb.cc
-    src/yaml_cfg.cpp
-
+    src/distbuild_wrapper.cpp
+    src/unix_ipc_socket.cpp
 )
 
-target_link_libraries(unix_ipc_client
+target_link_libraries(distbuild_wrapper
     PRIVATE
     yaml-cpp
     Boost::system
@@ -196,7 +185,9 @@ target_link_libraries(unix_ipc_client
     Boost::filesystem
     Threads::Threads
     spdlog::spdlog_header_only
-    ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    protobuf::libprotobuf
 )
 
 add_executable(resource_adv_client
@@ -212,7 +203,9 @@ target_link_libraries(resource_adv_client
     Boost::filesystem
     Threads::Threads
     spdlog::spdlog_header_only
-    ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    protobuf::libprotobuf
 )
 
 add_executable(resource_adv_server
@@ -228,6 +221,8 @@ target_link_libraries(resource_adv_server
     Boost::filesystem
     Threads::Threads
     spdlog::spdlog_header_only
-    ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    # ${Protobuf_LIBRARIES}
+    protobuf::libprotobuf
 )
 
