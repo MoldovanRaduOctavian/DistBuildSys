@@ -15,6 +15,7 @@
 #include "client_view.hpp"
 #include "distbuild_messages.pb.h"
 #include "file_state_view.hpp"
+#include "yaml_cfg.hpp"
 
 class CompilerManager;
 struct CompilationOutput;
@@ -43,8 +44,11 @@ public:
         _session_uuid(session_uuid),
         _current_working_dir(parent_client_view->get_curr_working_dir()),
         _in_src_file(session_start_rqst.client_source_file()),
-        _compiler_name(session_start_rqst.client_compiler())
-    {};
+        // _compiler_name(session_start_rqst.client_compiler())
+        _compiler_name(YamlConfig::instance().compiler_bin)
+    {
+        std::cout << "THIS IS THE COMPILER: " << _compiler_name << '\n'; 
+    };
    
     void add_required_file_state
         (

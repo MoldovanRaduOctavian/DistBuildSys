@@ -19,9 +19,11 @@ struct CmdLineIncludeDirs {
     std::vector<std::string> dash_iquote;
     std::vector<std::string> dash_include;
 
-    CmdLineIncludeDirs()
+    CmdLineIncludeDirs(bool do_system_includes = false)
     {
-        find_system_includes(YamlConfig::instance().compiler_bin);
+        if (do_system_includes) {
+            find_system_includes(YamlConfig::instance().compiler_bin);
+        }
     };
     
     bool find_system_includes

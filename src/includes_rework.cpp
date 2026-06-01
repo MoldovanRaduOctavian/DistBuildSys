@@ -99,16 +99,7 @@ bool CmdLineIncludeDirs::find_system_includes
         "c++", "/dev/null", "-fsyntax-only",
         boost::process::std_err > cc_stream
     );
-    
-    /*
-    boost::process::child       cc_proc(
-        "/usr/bin/clang++"
-        , "-Wp,-v", "-x", 
-        "c++", "/dev/null", "-fsyntax-only",
-        boost::process::std_err > cc_stream
-    );
-    */
-
+     
     boost::regex    inc_dir_regex(R"(^\s*(\/\S+))");
     boost::smatch   match;
     std::string     input_line;
@@ -127,9 +118,11 @@ bool CmdLineIncludeDirs::find_system_includes
                 std::filesystem::path abs_inc_path = 
                     std::filesystem::weakly_canonical(include_path);
                 dash_isystem.emplace_back(abs_inc_path);
+                std::cout << "-isystem " << abs_inc_path << '\n';
             }
             else {
                 dash_i.emplace_back(include_path);
+                std::cout <<  "-i " << include_path << '\n';
             }
         }
 

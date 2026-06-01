@@ -109,7 +109,7 @@ private:
     
     ResourceListener                _resource_listener;
 
-    CmdLineIncludeDirs              _system_include_dirs;
+    CmdLineIncludeDirs              _system_include_dirs{true};
     
     IncludesCache                   _includes_cache;
 

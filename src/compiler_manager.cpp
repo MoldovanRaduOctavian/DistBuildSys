@@ -114,7 +114,7 @@ CompilationOutput CompilerManager::_compile_src
     
     std::cout << "COMPILER EXIT CODE:" << compiler_exit_code << '\n';
     std::cout << "COMPILATION STDOUT: \n";
-    std::cout << stdout_oss.str() << '\n';
+    // std::cout << stdout_oss.str() << '\n';
     
     std::cout << "COMPILATION STDERR: \n";
     std::cout << stderr_oss.str() << '\n';
