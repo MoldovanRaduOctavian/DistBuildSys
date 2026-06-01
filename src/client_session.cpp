@@ -296,39 +296,81 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
 
 void ClientSession::_send_required_file() {
     
-    // DO we need mutex protection for these functions?
-    if (_req_files_send_idx < _required_files.size()) {
-        const std::string & required_file = _required_files[_req_files_send_idx];
-        
-        std::ifstream requested_file_stream(required_file, std::ios::binary);
-        const size_t OBJ_CHUNK_SZ = 64 * 1024;
-        std::vector<char> chunk_buff(OBJ_CHUNK_SZ);        
-        uint64_t seq_no = 1;
-        uint64_t file_offset = 0;
-        
-        std::string str_session_uuid = boost::uuids::to_string(_session_uuid);
-        while (requested_file_stream.read(chunk_buff.data(), OBJ_CHUNK_SZ)
-                || requested_file_stream.gcount())
-            {
-                auto bytes_read = requested_file_stream.gcount();
+    if (_req_files_send_idx >= _required_files.size()) {
+        return;
+    }
 
-                distbuild::ClientMessage requested_file_chunk_msg;
-                auto * chunk = requested_file_chunk_msg.mutable_file_chunk_upload();
+    const std::string& required_file =
+        _required_files[_req_files_send_idx];
 
-                chunk->set_session_id(str_session_uuid);
-                chunk->set_filename(required_file);
-                chunk->set_sequence_no(seq_no++);
-                chunk->set_offset(file_offset);
-                chunk->set_data(chunk_buff.data(), bytes_read);
-                chunk->set_is_last_chunk(bytes_read < OBJ_CHUNK_SZ);
+    std::ifstream requested_file_stream(
+        required_file,
+        std::ios::binary);
 
-                file_offset += bytes_read;
-                send_msg(requested_file_chunk_msg);
+    if (!requested_file_stream) {
+        return;
+    }
 
-            }
- 
+    constexpr size_t OBJ_CHUNK_SZ = 64 * 1024;
+    std::vector<char> chunk_buff(OBJ_CHUNK_SZ);
+
+    uint64_t seq_no = 1;
+    uint64_t file_offset = 0;
+
+    std::string str_session_uuid =
+        boost::uuids::to_string(_session_uuid);
+
+    //
+    // Special case: empty file
+    //
+
+#if 0
+    requested_file_stream.seekg(0, std::ios::end);
+
+    if (requested_file_stream.tellg() == 0)
+    {
+        distbuild::ClientMessage msg;
+        auto* chunk = msg.mutable_file_chunk_upload();
+
+        chunk->set_session_id(str_session_uuid);
+        chunk->set_filename(required_file);
+        chunk->set_sequence_no(1);
+        chunk->set_offset(0);
+        chunk->set_data("", 0);
+        chunk->set_is_last_chunk(true);
+
+        send_msg(msg);
+
         ++_req_files_send_idx;
-    } 
+        return;
+    }
+
+    requested_file_stream.seekg(0, std::ios::beg);
+
+#endif
+
+    while (requested_file_stream.read(chunk_buff.data(), OBJ_CHUNK_SZ)
+           || requested_file_stream.gcount())
+    {
+        auto bytes_read =
+            static_cast<size_t>(requested_file_stream.gcount());
+
+        distbuild::ClientMessage msg;
+        auto* chunk = msg.mutable_file_chunk_upload();
+
+        chunk->set_session_id(str_session_uuid);
+        chunk->set_filename(required_file);
+        chunk->set_sequence_no(seq_no++);
+        chunk->set_offset(file_offset);
+        chunk->set_data(chunk_buff.data(), bytes_read);
+        chunk->set_is_last_chunk(bytes_read < OBJ_CHUNK_SZ);
+
+        file_offset += bytes_read;
+
+        send_msg(msg);
+    }
+
+    ++_req_files_send_idx;
 
 }   /* ClientSession::_send_required_file() */
 
