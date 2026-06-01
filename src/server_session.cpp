@@ -53,6 +53,7 @@ void ServerSession::preprocess_compiler_call
     // This needs to get figured out
     // _current_working_dir for the session can be retrieved from ClientView
     std::cout << "CLIENT WORKING DIR: " << client_working_dir << '\n';
+    std::string idirs_dir = _current_working_dir;
     _current_working_dir = cnvt_client_to_server_path(_current_working_dir, client_working_dir);    
     std::cout << "SERVER WORKING DIR: " << _current_working_dir << '\n';
     
@@ -77,19 +78,40 @@ void ServerSession::preprocess_compiler_call
         _cmd_line_args.emplace_back(compiler_idirs[idir_idx]);
         _cmd_line_args.emplace_back
             (
-            cnvt_client_to_server_path(_current_working_dir, compiler_idirs[idir_idx + 1])    
+            cnvt_client_to_server_path(idirs_dir, compiler_idirs[idir_idx + 1])    
             );
     }
 
+#if 0
     for (const std::string & cmd_line_arg : compiler_cmd_line_args) {
+
         _cmd_line_args.emplace_back
             ( 
             handle_ffile_prefix_map(cmd_line_arg, _current_working_dir)
             );
     }
+#endif
 
-    _cmd_line_args.insert(_cmd_line_args.end(), {"-o", _out_obj_file, fixed_in_src_file});
+    for (size_t arg_idx = 0; arg_idx < compiler_cmd_line_args.size(); ) {
+        std::cout << compiler_cmd_line_args[arg_idx] << '\n';
+        if (compiler_cmd_line_args[arg_idx].ends_with(".cpp")) {
+            ++arg_idx;
+        }
+        else if (compiler_cmd_line_args[arg_idx].ends_with("-o")) {
+            arg_idx += 2;
+        }
+        else {
+            _cmd_line_args.emplace_back
+                (         
+                handle_ffile_prefix_map(compiler_cmd_line_args[arg_idx], _current_working_dir)
+                );
+            ++arg_idx;
+        }
+    }
+
+    _cmd_line_args.insert(_cmd_line_args.end(), {fixed_in_src_file, "-o", _out_obj_file});
     
+    std::cout << "REAL ARGS: \n";
     for (const auto & cmd_line_arg : _cmd_line_args) {
         std::cout << cmd_line_arg << "\n";
     }
@@ -255,11 +277,9 @@ boost::asio::awaitable<void> ServerSession::handle_session
         for (;;) {
             //receive and handle all types of packets from the client
             distbuild::ClientMessage client_message;
-            std::cout << "Do we get inside handle_session?\n";
             co_await proto_io::receive_msg(_session_socket, client_message);
             switch (client_message.content_case()) {
                 case distbuild::ClientMessage::kSessionStart:
-                    std::cout << "Received ClientMessage::kSessionStart\n";
                     _parent_client_view->update_last_active_ts();
                     break;
 
@@ -272,8 +292,6 @@ boost::asio::awaitable<void> ServerSession::handle_session
                             client_message.file_chunk_upload()    
                             );
                     
-                    std::cout << "Received filename: " << file_chunk_msg->filename() << '\n';
-
                     // Does file_chunk_msg get invalidated by the time it
                     // is passed to process_file_chunk
                     bool chunk_upload_success = process_file_chunk(file_chunk_msg); 
@@ -299,6 +317,7 @@ boost::asio::awaitable<void> ServerSession::handle_session
                     break;
 
                 default:
+                    std::cout << "DO WE EVER GET A DEFAULT MESSAGE FROM CLIENT?\n";
                     break;
             }
         }
@@ -341,8 +360,6 @@ bool ServerSession::process_file_chunk
     // the preconditions and postconditions for a file tranfer
 
     // file_chunk_msg get invalidated at this point ?!?!?!
-    std::cout << "process_file_chunk file_chunk_msg filename: " << file_chunk_msg->filename() << '\n';
-
     const FileStateView * curr_file_state = _parent_client_view->get_file_state(file_chunk_msg->filename());
     if (curr_file_state == nullptr) {
         return false;

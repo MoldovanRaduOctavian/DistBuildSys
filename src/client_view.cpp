@@ -149,7 +149,8 @@ void ClientView::add_session
         client_idirs
         );
     _create_client_dir_hierarchy(new_session);    
-    
+
+
     std::vector<std::string> requested_files_client_paths;
     for (const FileStateView * file_info : new_session.get_required_files_state()) {
         switch (file_info->file_status) {
@@ -194,25 +195,24 @@ void ClientView::add_session
         }         
     }     
     
-    distbuild::ServerMessage session_confirmed_msg;
-    session_confirmed_msg.mutable_session_confirmed()->set_session_id
+    std::shared_ptr<distbuild::ServerMessage> session_confirmed_msg =
+                std::make_shared<distbuild::ServerMessage>();
+    session_confirmed_msg->mutable_session_confirmed()->set_session_id
         (
         boost::uuids::to_string(session_uuid)
         );
 
     for (const std::string & requested_file_path : requested_files_client_paths) {
-        session_confirmed_msg.mutable_session_confirmed()->add_required_files
+        session_confirmed_msg->mutable_session_confirmed()->add_required_files
             (
             requested_file_path
             );
     }
-   
-    new_session.start_session();
-    // We have to construct the response for the client
-    // and send it back, before it starts sending file chunks
-    new_session.send_msg(session_confirmed_msg);
     
-    try_compile_for_active_sessions();
+    // We should not request a file if it is a usr lib system file
+    std::cout << "requested_files_client_paths size: " << requested_files_client_paths.size() << '\n';
+    new_session.start_session(session_confirmed_msg);   
+    // try_compile_for_active_sessions();
 
 }   /* ClientView::add_session() */
 

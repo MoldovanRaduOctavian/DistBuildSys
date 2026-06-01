@@ -18,6 +18,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
    
     try {
         // This should end when the compilation is done
+        _send_required_file();        
         for (;;) {
             
             distbuild::ServerMessage server_message;
@@ -260,21 +261,14 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
         _session_uuid = boost::uuids::string_generator() 
             (session_confirmation_msg.session_confirmed().session_id());
         session_uuid = _session_uuid;
-        // NOT input_src_file FOR THE OBJECT FILE PATH
-        // FUCKING DUMBASS
         _obj_file_transfer_state = ObjFileTransferState
                     (
                     boost::uuids::to_string(_session_uuid), 
                     _compiler_call.get_output_obj_file()
                     );
-
-        boost::asio::co_spawn
-            (
-            _session_socket.get_executor(), 
-            _handle_client_session(), 
-            boost::asio::detached
-            );
         
+        std::cout << "OBJ FILE TO BE WRITTEN:" << _compiler_call.get_output_obj_file() << '\n';
+
         const distbuild::ServerSessionConfirmedResponse & session_confirmed =
             session_confirmation_msg.session_confirmed();
         
@@ -283,8 +277,15 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
             session_confirmed.required_files().begin(),
             session_confirmed.required_files().end()
             };
-        
-        _send_required_file();
+
+
+        boost::asio::co_spawn
+            (
+            _session_socket.get_executor(), 
+            _handle_client_session(), 
+            boost::asio::detached
+            );
+                        
         co_return true;
 
     }

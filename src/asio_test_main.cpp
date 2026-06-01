@@ -38,6 +38,7 @@ int main(int argc, char ** argv) {
         for (std::thread & th : io_ctx_threads) {
             th.join();
         }
+
     }
      
     else if (argc == 3 && std::strcmp(argv[1], "client") == 0) {
@@ -59,6 +60,7 @@ int main(int argc, char ** argv) {
         Client client
             (
             io_ctx,
+            boost::uuids::string_generator()(distbuild_cfg.node_uuid),
             distbuild_cfg.node_advertising_port,
             distbuild_cfg.compiler_threads
             );
@@ -81,6 +83,8 @@ int main(int argc, char ** argv) {
         for (std::thread & th : io_ctx_threads) {
             th.join();
         }
+        
+        io_ctx.run();
 
     }
 

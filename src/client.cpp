@@ -67,6 +67,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
                 (
                 arg 
                 );
+            std::cout << arg << '\n';
         }
 
         std::vector<std::string> idirs_args =
@@ -136,6 +137,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
         // Send the results back to the wrapper
         // Perform a session cleanup
         co_await client_session->perform_local_compilation();
+        std::lock_guard<std::mutex> lock(_mtx);
         _client_sessions.try_emplace
             (
             boost::uuids::to_string(session_uuid),
@@ -191,12 +193,7 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         ipc_request.current_working_dir, 
         ipc_request.cmd_line_args
         );
-    
-    // YOU SHOULD ONLY OFFLOAD LOCAL COMPILATION TO THE REMOTE
-
-    // This is where the client decides which server to use
-    // ... HOW DO WE DO THAT REALIABLY AND BALANCED?
-    
+       
     CompilerCall::CallType compiler_call_type = compiler_call->get_compiler_call_type();
     if (compiler_call_type == CompilerCall::CallType::CALL_TYPE_COMPILE) { 
         ResourceListener::ServerInfo server_node;
@@ -221,9 +218,12 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
                 std::move(compiler_call)
                 );
         
+        std::cout << "BEFORE retrieve_unix_ipc_response()!!!\n";
         UnixIpcResponse unix_ipc_response = 
             co_await client_session->retrieve_unix_ipc_response();
         
+
+        std::cout << "THIS IS AFTER retrieve_unix_ipc_response()!!!\n";
         // The compilation session has finished
         // So we should dispose of it
         client_session->terminate_client_session();

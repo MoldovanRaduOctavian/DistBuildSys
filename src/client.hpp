@@ -23,10 +23,13 @@ public:
         (
         boost::asio::io_context & 
                             io_ctx,
+        const boost::uuids::uuid &
+                            client_uuid,
         uint16_t            advertising_port,
         int                 worker_pool_sz
         ) :
         _io_ctx(io_ctx),
+        _client_uuid(client_uuid),
         _unix_ipc_manager(
             io_ctx, 
             "/tmp/distbuild_ipc.sock",
@@ -94,9 +97,9 @@ public:
 private:
     
     boost::asio::awaitable<UnixIpcResponse> _handle_ipc_request(const UnixIpcRequest & ipc_request);
-
-    boost::uuids::uuid              _client_uuid;
+    
     boost::asio::io_context &       _io_ctx;
+    boost::uuids::uuid              _client_uuid;
     
     // All of these need to have thread safe interfaces
     // because ClientSessions working in parallel will be 

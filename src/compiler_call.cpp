@@ -31,6 +31,7 @@ bool CompilerCall::initialize_compiler_call
         if (file_name.ends_with(".h")
          || file_name.ends_with(".hpp")
          || file_name.ends_with(".hh")
+         || file_name.ends_with(".inc")
         )
         {
             return true;
@@ -92,9 +93,12 @@ bool CompilerCall::initialize_compiler_call
             if (cmd_line_contents[arg_idx] == ARG_DASH_I) {
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
                 if (status) {
+                    auto dash_i_path = 
+                        get_abs_path(compiler_call_directory, next_arg);
                     _cmd_line_include_dirs.dash_i.emplace_back(
-                        get_abs_path(compiler_call_directory, next_arg)
+                        dash_i_path
                     );
+                    _cmd_line_args.emplace_back(dash_i_path);
 
                     ++arg_idx;
                 }
@@ -106,10 +110,12 @@ bool CompilerCall::initialize_compiler_call
             else if (cmd_line_contents[arg_idx] == ARG_DASH_ISYSTEM) {
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
                 if (status) {
+                    auto dash_isystem_path =
+                        get_abs_path(compiler_call_directory, next_arg);
                     _cmd_line_include_dirs.dash_isystem.emplace_back(
-                        get_abs_path(compiler_call_directory, next_arg)
+                        dash_isystem_path
                     );
-
+                    _cmd_line_args.emplace_back(dash_isystem_path);
                     ++arg_idx;
                 }
                 else {
@@ -120,10 +126,12 @@ bool CompilerCall::initialize_compiler_call
             else if (cmd_line_contents[arg_idx] == ARG_DASH_IQUOTE) {
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
                 if (status) {
+                    auto dash_iquote_path = 
+                        get_abs_path(compiler_call_directory, next_arg);
                     _cmd_line_include_dirs.dash_iquote.emplace_back(
-                        get_abs_path(compiler_call_directory, next_arg)
+                        dash_iquote_path
                     );
-
+                    _cmd_line_args.emplace_back(dash_iquote_path);
                     ++arg_idx;
                 }
                 else {
@@ -134,10 +142,12 @@ bool CompilerCall::initialize_compiler_call
             else if (cmd_line_contents[arg_idx] == ARG_DASH_INCLUDE) {
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
                 if (status) {
+                    auto dash_include_path = 
+                        get_abs_path(compiler_call_directory, next_arg);
                     _cmd_line_include_dirs.dash_include.emplace_back(
-                        get_abs_path(compiler_call_directory, next_arg)
+                        dash_include_path
                     );
-
+                    _cmd_line_args.emplace_back(dash_include_path);
                     ++arg_idx;
                 }
                 else {
@@ -149,6 +159,7 @@ bool CompilerCall::initialize_compiler_call
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
                 if (status) {
                     _output_obj_file = next_arg;
+                    _cmd_line_args.emplace_back(next_arg);
                     ++arg_idx;
                 }
                 else {
@@ -159,9 +170,12 @@ bool CompilerCall::initialize_compiler_call
             else if (cmd_line_contents[arg_idx] == "-MF") {
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
                 if (status) {
+                    auto mf_flag_path = 
+                        get_abs_path(compiler_call_directory, next_arg);
                     _dep_cmd_state.add_mf_flag_path(
-                        get_abs_path(compiler_call_directory, next_arg)
+                        mf_flag_path
                     );
+                    _cmd_line_args.emplace_back(mf_flag_path);
                     ++arg_idx;
                 }
                 else {
@@ -173,6 +187,7 @@ bool CompilerCall::initialize_compiler_call
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
                 if (status) {
                     _dep_cmd_state.add_mt_flag_path(next_arg);
+                    _cmd_line_args.emplace_back(next_arg);
                     ++arg_idx;
                 }
                 else {
@@ -184,6 +199,7 @@ bool CompilerCall::initialize_compiler_call
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
                 if (status) {
                     _dep_cmd_state.add_mq_flag_path(next_arg);
+                    _cmd_line_args.emplace_back(next_arg);
                     ++arg_idx;
                 }
                 else {
