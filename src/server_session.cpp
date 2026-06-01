@@ -74,7 +74,7 @@ void ServerSession::preprocess_compiler_call
 
     _cmd_line_args.clear();
     for (size_t idir_idx = 0; idir_idx < compiler_idirs.size(); idir_idx += 2) {
-        _cmd_line_args.emplace_back(compiler_cmd_line_args[idir_idx]);
+        _cmd_line_args.emplace_back(compiler_idirs[idir_idx]);
         _cmd_line_args.emplace_back
             (
             cnvt_client_to_server_path(_current_working_dir, compiler_idirs[idir_idx + 1])    
@@ -89,6 +89,10 @@ void ServerSession::preprocess_compiler_call
     }
 
     _cmd_line_args.insert(_cmd_line_args.end(), {"-o", _out_obj_file, fixed_in_src_file});
+    
+    for (const auto & cmd_line_arg : _cmd_line_args) {
+        std::cout << cmd_line_arg << "\n";
+    }
 
 }   /* ServerSession::preprocess_compiler_call() */
 
@@ -240,16 +244,22 @@ void ServerSession::send_compilation_result()
 
 }
 
-
-boost::asio::awaitable<void> ServerSession::handle_session() {
+boost::asio::awaitable<void> ServerSession::handle_session
+    (
+    std::shared_ptr<distbuild::ServerMessage>
+                session_confirmed_msg
+    )
+{
     try {
-        
+        send_msg(*session_confirmed_msg);         
         for (;;) {
-            // receive and handle all types of packets from the client
+            //receive and handle all types of packets from the client
             distbuild::ClientMessage client_message;
+            std::cout << "Do we get inside handle_session?\n";
             co_await proto_io::receive_msg(_session_socket, client_message);
             switch (client_message.content_case()) {
                 case distbuild::ClientMessage::kSessionStart:
+                    std::cout << "Received ClientMessage::kSessionStart\n";
                     _parent_client_view->update_last_active_ts();
                     break;
 

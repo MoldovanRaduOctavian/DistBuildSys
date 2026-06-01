@@ -79,12 +79,25 @@ public:
         return _current_working_dir;
     }
      
-    void start_session()
+    void start_session
+        (
+        std::shared_ptr<distbuild::ServerMessage>
+                    session_confirmed_msg
+        )
     {
-        boost::asio::co_spawn(_session_socket.get_executor(), handle_session(), boost::asio::detached);
+        boost::asio::co_spawn
+            (
+            _session_socket.get_executor(), 
+            handle_session(session_confirmed_msg), 
+            boost::asio::detached
+            );
     }
 
-    boost::asio::awaitable<void> handle_session();
+    boost::asio::awaitable<void> handle_session
+        (
+        std::shared_ptr<distbuild::ServerMessage>
+                    session_confirmed_msg
+        );
 
     // Rewrite file upload chunk handling logic
     bool process_file_chunk
