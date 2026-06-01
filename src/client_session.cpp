@@ -260,10 +260,12 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
         _session_uuid = boost::uuids::string_generator() 
             (session_confirmation_msg.session_confirmed().session_id());
         session_uuid = _session_uuid;
+        // NOT input_src_file FOR THE OBJECT FILE PATH
+        // FUCKING DUMBASS
         _obj_file_transfer_state = ObjFileTransferState
                     (
                     boost::uuids::to_string(_session_uuid), 
-                    _compiler_call.get_input_src_file()
+                    _compiler_call.get_output_obj_file()
                     );
 
         boost::asio::co_spawn
@@ -324,7 +326,6 @@ void ClientSession::_send_required_file() {
     // Special case: empty file
     //
 
-#if 0
     requested_file_stream.seekg(0, std::ios::end);
 
     if (requested_file_stream.tellg() == 0)
@@ -336,7 +337,7 @@ void ClientSession::_send_required_file() {
         chunk->set_filename(required_file);
         chunk->set_sequence_no(1);
         chunk->set_offset(0);
-        chunk->set_data("", 0);
+        chunk->set_data(" ", 1);
         chunk->set_is_last_chunk(true);
 
         send_msg(msg);
@@ -346,8 +347,6 @@ void ClientSession::_send_required_file() {
     }
 
     requested_file_stream.seekg(0, std::ios::beg);
-
-#endif
 
     while (requested_file_stream.read(chunk_buff.data(), OBJ_CHUNK_SZ)
            || requested_file_stream.gcount())
