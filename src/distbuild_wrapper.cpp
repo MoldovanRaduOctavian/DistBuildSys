@@ -1,11 +1,12 @@
 #include <array>
-#include <boost/asio/io_context.hpp>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
 
 #include <boost/asio.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/process/environment.hpp>
 
 #include "unix_ipc_socket.hpp"
@@ -185,6 +186,8 @@ UnixIpcResponse send_request_to_distbuild
 }
 
 int main(int argc, char ** argv ) {
+    
+    auto start_time = std::chrono::steady_clock::now();
 
 #if 0
     if (argc < 3) {
@@ -228,6 +231,10 @@ int main(int argc, char ** argv ) {
     
     std::cout << distbuild_response.stdout_content;
     std::cerr << distbuild_response.stderr_content;
+    
+    auto end_duration = std::chrono::steady_clock::now() - start_time;
+    std::cout << "\nTOTAL DURATION: " << std::chrono::duration_cast<std::chrono::milliseconds>(
+        end_duration).count() << '\n';
 
     io_ctx.run();
     return distbuild_response.compiler_exit_code;

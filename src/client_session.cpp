@@ -310,6 +310,10 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
 
 void ClientSession::_send_required_file() {
     
+    // Second time when you want to compile the same
+    // file, _required_files size is 0, you do not
+    // send any message because you exit early
+    // and the session FSM locks up
     if (_req_files_send_idx >= _required_files.size()) {
         return;
     }
