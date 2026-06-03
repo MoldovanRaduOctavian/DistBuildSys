@@ -501,12 +501,15 @@ void ServerSession::terminate_server_session() {
     std::lock_guard<std::mutex> lock(_mtx);
     
     _compiler_manager->invalidate_requests_for_session(this);
-
-    boost::system::error_code ec;
-    auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
-    _session_socket.close();
-    
     _parent_client_view->remove_session(_session_uuid);
+    try { 
+        boost::system::error_code ec;
+        auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
+        _session_socket.close();
+    }
+    catch (...) {
+
+    }
 
 }   /* ServerSession::terminate_server_session() */
 

@@ -133,6 +133,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
     else {
         // THIS IS BROKEN THIS NEEDS TO BE FIXED!!!
         // ... We need to invalidate the session somehow
+        client_session->send_abort_to_server();
         client_session->terminate_client_session();
         // Send the results back to the wrapper
         // Perform a session cleanup
@@ -226,6 +227,7 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         std::cout << "THIS IS AFTER retrieve_unix_ipc_response()!!!\n";
         // The compilation session has finished
         // So we should dispose of it
+        client_session->send_abort_to_server();
         client_session->terminate_client_session();
         co_return unix_ipc_response;
         

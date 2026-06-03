@@ -44,6 +44,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                         // Do we go for local compilation?
                         // Do we end the session?
                         co_await perform_local_compilation();
+                        send_abort_to_server();
                         terminate_client_session();
                         co_return;
                     }
@@ -65,6 +66,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                         // Fall back to local compilation
                         // Cleanup the current session
                         co_await perform_local_compilation();
+                        send_abort_to_server();
                         terminate_client_session();
                         co_return;
                     }
@@ -86,11 +88,8 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
 
 }   /* ClientSession::_handle_client_session() */
 
-
-void ClientSession::terminate_client_session() {
+void ClientSession::send_abort_to_server() {
     try {
-        std::lock_guard<std::mutex> lock(_mtx);
-    
         distbuild::ClientMessage client_message;
         auto * client_session_abort_rqst = client_message.mutable_session_abort();
         client_session_abort_rqst->set_session_id(boost::uuids::to_string(_session_uuid));
@@ -99,12 +98,24 @@ void ClientSession::terminate_client_session() {
             boost::uuids::to_string(_client.get_client_uuid())
             );
         send_msg(client_message);
-            
+
+    }
+    catch (...) {
+
+    }
+
+}   /* ClientSession::send_abort_to_server() */
+
+void ClientSession::terminate_client_session() {
+
+    std::lock_guard<std::mutex> lock(_mtx);
+    _client.remove_client_session(_session_uuid);
+    try {
+                
         boost::system::error_code ec;
         auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
         _session_socket.close();
         
-        _client.remove_client_session(_session_uuid);
 
     }
     catch (const std::exception & e) {

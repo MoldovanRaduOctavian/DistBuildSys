@@ -88,6 +88,7 @@ public:
     
     boost::asio::awaitable<void> perform_local_compilation();
     
+    void send_abort_to_server();
     void terminate_client_session();
     
     boost::asio::awaitable<UnixIpcResponse> retrieve_unix_ipc_response() {
