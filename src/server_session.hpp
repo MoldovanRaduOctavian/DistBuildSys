@@ -49,7 +49,11 @@ public:
     {
         std::cout << "THIS IS THE COMPILER: " << _compiler_name << '\n'; 
     };
-   
+    
+    ~ServerSession() {
+        std::cout << "SERVER SESSION DESTROYED: " << _session_uuid << '\n';
+    }
+
     void add_required_file_state
         (
         FileStateView & file_state
@@ -135,7 +139,7 @@ public:
     
     void set_available_compiler_jobs(size_t available_jobs); 
 
-    void terminate_server_session(); 
+    boost::asio::awaitable<void> terminate_server_session(); 
 
 private:
 

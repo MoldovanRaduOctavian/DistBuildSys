@@ -74,7 +74,7 @@ int main(int argc, char ** argv) {
         */
 
         std::vector<std::thread> io_ctx_threads;
-        for (size_t th_idx = 0; th_idx < 4; ++th_idx) {
+        for (size_t th_idx = 0; th_idx < 8; ++th_idx) {
             io_ctx_threads.emplace_back([&io_ctx]{
                 io_ctx.run();
             });
@@ -84,7 +84,6 @@ int main(int argc, char ** argv) {
             th.join();
         }
         
-        io_ctx.run();
 
     }
 

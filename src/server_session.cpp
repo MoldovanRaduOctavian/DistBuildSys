@@ -2,6 +2,7 @@
 
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -312,12 +313,15 @@ boost::asio::awaitable<void> ServerSession::handle_session
                 
                 case distbuild::ClientMessage::kSessionAbort:
                     // We need to dispose of this session
-                    terminate_server_session();
+                    std::cout << "DO WE ALWAYS RECEIVE kSessionAbort ???\n";
+                    co_await terminate_server_session();
                     co_return;
                     break;
 
                 default:
                     std::cout << "DO WE EVER GET A DEFAULT MESSAGE FROM CLIENT?\n";
+                    co_await terminate_server_session();
+                    co_return;
                     break;
             }
         }
@@ -325,7 +329,7 @@ boost::asio::awaitable<void> ServerSession::handle_session
     }
     catch (std::exception & e) {
         std::cout << e.what() << '\n';
-        terminate_server_session();
+        // terminate_server_session();
     }
         
 }   /* ServerSession::handle_session() */
@@ -497,11 +501,14 @@ bool ServerSession::process_file_chunk
 }   /* ServerSession::process_file_chunk() */
 
 
-void ServerSession::terminate_server_session() {
-    std::lock_guard<std::mutex> lock(_mtx);
+boost::asio::awaitable<void> ServerSession::terminate_server_session() {
     
-    _compiler_manager->invalidate_requests_for_session(this);
-    _parent_client_view->remove_session(_session_uuid);
+    co_await boost::asio::dispatch(
+        _strand,
+        boost::asio::use_awaitable
+    );
+
+    std::lock_guard<std::mutex> lock(_mtx);    
     try { 
         boost::system::error_code ec;
         auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
@@ -510,6 +517,11 @@ void ServerSession::terminate_server_session() {
     catch (...) {
 
     }
+    // Accessing the object fields after this is particularly dangerous
+    // Since it should be destroyed on removal
+    _compiler_manager->invalidate_requests_for_session(this);
+    _parent_client_view->remove_session(_session_uuid);
+
 
 }   /* ServerSession::terminate_server_session() */
 

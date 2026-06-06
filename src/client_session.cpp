@@ -1,7 +1,11 @@
 #include "client_session.hpp"
 
 #include <boost/asio/socket_base.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/asio/this_coro.hpp>
+#include <boost/asio/use_awaitable.hpp>
 #include <boost/system/detail/error_code.hpp>
+#include <chrono>
 #include <fstream>
 
 #include <boost/process.hpp>
@@ -29,7 +33,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                 case distbuild::ServerMessage::kSessionAbort:
                     // What do you do in case of abort???
                     co_await perform_local_compilation();
-                    terminate_client_session();
+                    co_await terminate_client_session();
                     co_return;
                     break;
                 case distbuild::ServerMessage::kFileUpComplete:
@@ -45,7 +49,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                         // Do we end the session?
                         co_await perform_local_compilation();
                         send_abort_to_server();
-                        terminate_client_session();
+                        co_await terminate_client_session();
                         co_return;
                     }
 
@@ -67,7 +71,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                         // Cleanup the current session
                         co_await perform_local_compilation();
                         send_abort_to_server();
-                        terminate_client_session();
+                        co_await terminate_client_session();
                         co_return;
                     }
 
@@ -81,10 +85,13 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
     }
     catch (const std::exception & e) {
         // What do we do in case of an exception?
+        std::cout << "THIS ONLY OCCURS IN handle_client_session\n";
         std::cout << e.what() << '\n';
         // co_await perform_local_compilation();
-        terminate_client_session();
+        // co_await terminate_client_session();
     }
+    
+    // co_await terminate_client_session();
 
 }   /* ClientSession::_handle_client_session() */
 
@@ -100,16 +107,20 @@ void ClientSession::send_abort_to_server() {
         send_msg(client_message);
 
     }
-    catch (...) {
-
+    catch (const std::exception & e) {
+        std::cout << "Inside send_abort_to_server: " << e.what() << '\n';
     }
 
 }   /* ClientSession::send_abort_to_server() */
 
-void ClientSession::terminate_client_session() {
+boost::asio::awaitable<void> ClientSession::terminate_client_session() {
+    
+    co_await boost::asio::dispatch(
+        _strand,
+        boost::asio::use_awaitable
+    );
 
     std::lock_guard<std::mutex> lock(_mtx);
-    _client.remove_client_session(_session_uuid);
     try {
                 
         boost::system::error_code ec;
@@ -121,6 +132,15 @@ void ClientSession::terminate_client_session() {
     catch (const std::exception & e) {
         std::cout << e.what() << '\n';
     }
+    
+    boost::asio::steady_timer removal_timer(co_await boost::asio::this_coro::executor);
+    while (_write_in_progress) {
+        removal_timer.expires_after(std::chrono::milliseconds(10));
+        co_await removal_timer.async_wait(boost::asio::use_awaitable);
+    }
+
+    // Wait until writing ends     
+    _client.remove_client_session(_session_uuid);
 
 }   /* ClientSession::terminate_client_session() */
 

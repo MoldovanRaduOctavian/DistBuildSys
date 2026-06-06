@@ -2,6 +2,7 @@
 #define CLIENT_SESSION_HPP
 
 #include <atomic>
+#include <boost/uuid/uuid_io.hpp>
 #include <fstream>
 #include <deque>
 #include <mutex>
@@ -61,6 +62,10 @@ public:
         _unix_ipc_channel(_io_ctx, 1)
     {};
     
+    ~ClientSession() {
+        std::cout << "ClientSession " << boost::uuids::to_string(_session_uuid) << " WAS DESTROYED\n";
+    }
+
     void initialize_client_session
         (
         const boost::uuids::uuid & session_uuid
@@ -89,7 +94,7 @@ public:
     boost::asio::awaitable<void> perform_local_compilation();
     
     void send_abort_to_server();
-    void terminate_client_session();
+    boost::asio::awaitable<void> terminate_client_session();
     
     boost::asio::awaitable<UnixIpcResponse> retrieve_unix_ipc_response() {
         UnixIpcResponse response = 

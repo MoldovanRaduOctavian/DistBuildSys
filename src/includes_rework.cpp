@@ -118,11 +118,9 @@ bool CmdLineIncludeDirs::find_system_includes
                 std::filesystem::path abs_inc_path = 
                     std::filesystem::weakly_canonical(include_path);
                 dash_isystem.emplace_back(abs_inc_path);
-                std::cout << "-isystem " << abs_inc_path << '\n';
             }
             else {
                 dash_i.emplace_back(include_path);
-                std::cout <<  "-i " << include_path << '\n';
             }
         }
 

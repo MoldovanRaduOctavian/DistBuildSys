@@ -67,7 +67,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
                 (
                 arg 
                 );
-            std::cout << arg << '\n';
+            // std::cout << arg << '\n';
         }
 
         std::vector<std::string> idirs_args =
@@ -128,13 +128,15 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
             boost::uuids::to_string(session_uuid),
             std::move(compiler_call)
             );
+
+        std::cout << "INSIDE Client::connecto_to_server !!!\n";
         co_return _client_sessions[boost::uuids::to_string(session_uuid)].get();
     }
     else {
         // THIS IS BROKEN THIS NEEDS TO BE FIXED!!!
         // ... We need to invalidate the session somehow
         client_session->send_abort_to_server();
-        client_session->terminate_client_session();
+        co_await client_session->terminate_client_session();
         // Send the results back to the wrapper
         // Perform a session cleanup
         co_await client_session->perform_local_compilation();
@@ -197,12 +199,14 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
        
     CompilerCall::CallType compiler_call_type = compiler_call->get_compiler_call_type();
     if (compiler_call_type == CompilerCall::CallType::CALL_TYPE_COMPILE) { 
+        std::cout << "WE ARE INSIDE _handle_ipc_request\n";
         ResourceListener::ServerInfo server_node;
         boost::asio::steady_timer find_sv_retry_timer(_io_ctx);
         for (;;) {
             auto server_info_opt = _resource_listener.pick_compilation_server();
             if (server_info_opt) {
                 server_node = server_info_opt.value();
+                std::cout << "SERVER STATS: " << server_node.available_jobs << '\n';
                 break;
             }
             else {
@@ -219,6 +223,8 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
                 std::move(compiler_call)
                 );
         
+        // We do not arrive to this point when we request 
+        // the same file to be compiled multiple times in parallel
         std::cout << "BEFORE retrieve_unix_ipc_response()!!!\n";
         UnixIpcResponse unix_ipc_response = 
             co_await client_session->retrieve_unix_ipc_response();
@@ -228,10 +234,9 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         // The compilation session has finished
         // So we should dispose of it
         client_session->send_abort_to_server();
-        client_session->terminate_client_session();
+        co_await client_session->terminate_client_session();
         co_return unix_ipc_response;
         
-        // This is fatal, we must not get to this point
     }
     else {
         /* If the call type is linking or some other kind, then we only compile locally */

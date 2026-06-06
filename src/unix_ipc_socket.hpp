@@ -4,7 +4,6 @@
 #include <atomic>
 #include <filesystem>
 #include <iostream>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -185,10 +184,19 @@ private:
             
             UnixIpcRequest request =
                 _deserialize_request(payload);
-            
+
+#if 0
             UnixIpcResponse response =
                 co_await boost::asio::co_spawn(
                     _worker_pool,
+                    _request_handler(request),
+                    boost::asio::use_awaitable
+                );
+#endif
+
+            UnixIpcResponse response =
+                co_await boost::asio::co_spawn(
+                    _io_ctx,
                     _request_handler(request),
                     boost::asio::use_awaitable
                 );
