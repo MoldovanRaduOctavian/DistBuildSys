@@ -6,6 +6,7 @@
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/system/detail/error_code.hpp>
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 
 #include <boost/process.hpp>
@@ -133,14 +134,15 @@ boost::asio::awaitable<void> ClientSession::terminate_client_session() {
         std::cout << e.what() << '\n';
     }
     
+    // This crap might cause use some race conditions
     boost::asio::steady_timer removal_timer(co_await boost::asio::this_coro::executor);
     while (_write_in_progress) {
-        removal_timer.expires_after(std::chrono::milliseconds(5));
+        removal_timer.expires_after(std::chrono::seconds(1));
         co_await removal_timer.async_wait(boost::asio::use_awaitable);
     }
 
     // Wait until writing ends     
-    _client.remove_client_session(_session_uuid);
+    // _client.remove_client_session(_session_uuid);
 
 }   /* ClientSession::terminate_client_session() */
 
@@ -224,6 +226,10 @@ boost::asio::awaitable<bool> ClientSession::_process_obj_file_chunk
         co_return false;
     }    
     
+    if (!obj_transfer_state.obj_out_stream) {
+        throw std::runtime_error{"INVALID OBJECT FILE EXCEPTION!"};
+    }
+
     obj_transfer_state.obj_out_stream.write
         (
         obj_file_chunk_msg->data().data(),
@@ -295,10 +301,14 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
         _obj_file_transfer_state = ObjFileTransferState
                     (
                     boost::uuids::to_string(_session_uuid), 
-                    _compiler_call.get_output_obj_file()
+                    std::filesystem::weakly_canonical(
+                        std::filesystem::path{_compiler_call.get_current_working_dir()} /
+                        std::filesystem::path{_compiler_call.get_output_obj_file()}
+                    )
                     );
         
-        std::cout << "OBJ FILE TO BE WRITTEN:" << _compiler_call.get_output_obj_file() << '\n';
+        std::cout << "CURRENT WORKING DIR: " << _compiler_call.get_current_working_dir() << '\n';
+        std::cout << "OBJ FILE TO BE WRITTEN:" << _obj_file_transfer_state->filename << '\n';
 
         const distbuild::ServerSessionConfirmedResponse & session_confirmed =
             session_confirmation_msg.session_confirmed();
@@ -367,6 +377,7 @@ void ClientSession::_send_required_file() {
 
     if (requested_file_stream.tellg() == 0)
     {
+        std::cout << "THIS IS AN EMPTY C++ SRC WHAT DO WE DO?\n";
         distbuild::ClientMessage msg;
         auto* chunk = msg.mutable_file_chunk_upload();
 
@@ -374,7 +385,6 @@ void ClientSession::_send_required_file() {
         chunk->set_filename(required_file);
         chunk->set_sequence_no(1);
         chunk->set_offset(0);
-        chunk->set_data(" ", 1);
         chunk->set_is_last_chunk(true);
 
         send_msg(msg);

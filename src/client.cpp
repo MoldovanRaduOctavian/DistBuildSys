@@ -195,7 +195,7 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
        
     CompilerCall::CallType compiler_call_type = compiler_call->get_compiler_call_type();
     if (compiler_call_type == CompilerCall::CallType::CALL_TYPE_COMPILE) { 
-        std::cout << "WE ARE INSIDE _handle_ipc_request\n";
+        std::cout << "\n\nWE ARE INSIDE _handle_ipc_request\n";
         ResourceListener::ServerInfo server_node;
         boost::asio::steady_timer find_sv_retry_timer(_io_ctx);
         for (;;) {

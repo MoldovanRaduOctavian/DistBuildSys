@@ -92,10 +92,24 @@ void ServerSession::preprocess_compiler_call
             );
     }
 #endif
+    
+    auto is_src_file = [](const std::string & file_name) {
+        if (file_name.ends_with(".c")
+         || file_name.ends_with(".cc")
+         || file_name.ends_with(".cpp")
+         || file_name.ends_with(".cxx")
+        )
+        {
+            return true;
+        }
+
+        return false;
+
+    };
 
     for (size_t arg_idx = 0; arg_idx < compiler_cmd_line_args.size(); ) {
         // std::cout << compiler_cmd_line_args[arg_idx] << '\n';
-        if (compiler_cmd_line_args[arg_idx].ends_with(".cpp")) {
+        if (is_src_file(compiler_cmd_line_args[arg_idx])) {
             ++arg_idx;
         }
         else if (compiler_cmd_line_args[arg_idx].ends_with("-o")) {
@@ -113,7 +127,7 @@ void ServerSession::preprocess_compiler_call
     _cmd_line_args.insert(_cmd_line_args.end(), {fixed_in_src_file, "-o", _out_obj_file});
 
 #if 0
-    std::cout << "REAL ARGS: \n";
+    std::cout << "\nREAL ARGS: \n";
     for (const auto & cmd_line_arg : _cmd_line_args) {
         std::cout << cmd_line_arg << "\n";
     }
@@ -473,6 +487,8 @@ bool ServerSession::process_file_chunk
                 FileStateView::Status::FILE_STATUS_FAULT
                 );
             
+            std::cout << "ServerSession::process_file_chunk SHA1 MISMATCH!!!\n";
+            std::cout << "FILE SIZE: " << curr_file_state->file_sz_bytes << '\n';
             return false;
         }    
 
@@ -531,61 +547,6 @@ boost::asio::awaitable<void> ServerSession::terminate_server_session() {
 
 }   /* ServerSession::terminate_server_session() */
 
-#if 0
-
-void ServerSession::send_msg
-    (
-    const distbuild::ServerMessage & msg
-    )
-{
-    std::string msg_payload;
-    msg.SerializeToString(&msg_payload);
-
-    uint32_t network_msg_sz = htonl(msg_payload.size());
-    
-    std::string framed;
-    framed.append(reinterpret_cast<char *>(&network_msg_sz), sizeof(network_msg_sz));
-    framed.append(msg_payload);
-
-    boost::asio::dispatch(_strand,
-        [this, framed = std::move(framed)]() mutable {
-            _write_queue.push_back(std::move(framed));
-            if (!_write_in_progress) {
-                _write_in_progress = true;
-                boost::asio::co_spawn(
-                    _strand,
-                    _writer_loop(),
-                    boost::asio::detached
-                );
-            }
-    });
-
-}   /* ServerSession::send_msg() */
-
-boost::asio::awaitable<void> ServerSession::_writer_loop() {
-    
-    try {
-        while (!_write_queue.empty()) {
-            std::string & msg = _write_queue.front();
-            
-            co_await boost::asio::async_write(
-                _session_socket,
-                boost::asio::buffer(msg),
-                boost::asio::use_awaitable
-            );
-
-            _write_queue.pop_front();
-        }
-    }
-    catch (std::exception & e) {
-        std::cout << e.what() << '\n';
-    }
-
-    _write_in_progress = false;
-
-}   /* ServerSession::_writer_loop() */
-
-#endif
 
 void ServerSession::send_msg
     (

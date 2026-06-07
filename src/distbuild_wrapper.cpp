@@ -123,6 +123,7 @@ UnixIpcResponse send_request_to_distbuild
     const std::string IPC_SOCKET_PATH = "/tmp/distbuild_ipc.sock";
     UnixIpcRequest compilation_request{
         std::filesystem::current_path().string(),
+        // "/home/radu/distbuild/artifacts",
         cmd_args
     };
     
@@ -189,12 +190,10 @@ int main(int argc, char ** argv ) {
     
     auto start_time = std::chrono::steady_clock::now();
 
-#if 0
     if (argc < 3) {
         std::cerr << "distbuild: Not enough cmd line args\n";
         return 1;
     }
-#endif
     
     auto environment_variables = boost::this_process::environment();
     
@@ -204,21 +203,21 @@ int main(int argc, char ** argv ) {
 
     // if (environment_variables.find(DISTBUILD_PATH) != environment_variables.end()) {
     if (true) {
-#if 0
         std::vector<std::string> cmd_args;
         for (int arg_idx = 1; arg_idx < argc; ++arg_idx) {
             cmd_args.emplace_back(argv[arg_idx]);
         }
-#endif
-        
+
+#if 0
         std::vector<std::string> cmd_args = {
         "/usr/bin/clang++", "-DBOOST_ATOMIC_DYN_LINK", "-DBOOST_ATOMIC_NO_LIB", "-DBOOST_FILESYSTEM_DYN_LINK", 
         "-g", "-Wall", "-Wextra", "-Wshadow", "-std=c++20", "-MD", "-MT", 
-        "CMakeFiles/distbuild_daemon.dir/src/client_session.cpp.o", "-o", 
-        "CMakeFiles/distbuild_daemon.dir/src/client_session.cpp.o", "-c", 
-        "/home/radu/distbuild/DistBuildSys/src/client_session.cpp"
+        "CMakeFiles/distbuild_daemon.dir/src/server_session.cpp.o", "-o", 
+        "CMakeFiles/distbuild_daemon.dir/src/server_session.cpp.o", "-c", 
+        "/home/radu/distbuild/DistBuildSys/src/server_session.cpp"
 
         };
+#endif
 
         distbuild_response = send_request_to_distbuild(io_ctx, cmd_args);        
 

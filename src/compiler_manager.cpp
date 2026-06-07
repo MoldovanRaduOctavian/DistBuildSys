@@ -117,7 +117,7 @@ CompilationOutput CompilerManager::_compile_src
     // std::cout << stdout_oss.str() << '\n';
     
     std::cout << "COMPILATION STDERR: \n";
-    // std::cout << stderr_oss.str() << '\n';
+    std::cout << stderr_oss.str() << '\n';
 
     // I have to return something to the server session
     return CompilationOutput{

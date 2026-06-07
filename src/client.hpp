@@ -33,7 +33,6 @@ public:
         _unix_ipc_manager(
             io_ctx, 
             "/tmp/distbuild_ipc.sock",
-            worker_pool_sz,
             [this](const UnixIpcRequest & ipc_request) -> boost::asio::awaitable<UnixIpcResponse> {
                 co_return co_await _handle_ipc_request(ipc_request);                
             }),

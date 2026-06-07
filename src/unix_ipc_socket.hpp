@@ -67,7 +67,6 @@ private:
         
     std::string                 _ipc_socket_path;
 
-    boost::asio::thread_pool    _worker_pool;
     std::atomic<uint32_t>       _active_connections;
     
     RequestHandler              _request_handler;
@@ -79,13 +78,11 @@ public:
         boost::asio::io_context & 
                                 io_ctx,
         const std::string &     ipc_socket_path,
-        int                     worker_pool_sz,
         RequestHandler          request_handler
         ) :
         _io_ctx(io_ctx),
         _ipc_acceptor(io_ctx),
         _ipc_socket_path(ipc_socket_path),
-        _worker_pool(worker_pool_sz),
         _active_connections(0),
         _request_handler(request_handler)
         {};
@@ -121,7 +118,6 @@ private:
     void _stop_ipc_manager() {
         boost::system::error_code error_code;
         auto ec = _ipc_acceptor.close(error_code);
-        _worker_pool.join();
         std::filesystem::remove(_ipc_socket_path);
     }
 
@@ -184,15 +180,6 @@ private:
             
             UnixIpcRequest request =
                 _deserialize_request(payload);
-
-#if 0
-            UnixIpcResponse response =
-                co_await boost::asio::co_spawn(
-                    _worker_pool,
-                    _request_handler(request),
-                    boost::asio::use_awaitable
-                );
-#endif
 
             UnixIpcResponse response =
                 co_await boost::asio::co_spawn(

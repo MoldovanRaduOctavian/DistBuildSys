@@ -45,6 +45,7 @@ bool CompilerCall::initialize_compiler_call
         if (file_name.ends_with(".c")
          || file_name.ends_with(".cc")
          || file_name.ends_with(".cpp")
+         || file_name.ends_with(".cxx")
         )
         {
             return true;
