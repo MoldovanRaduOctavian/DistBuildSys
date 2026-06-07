@@ -92,7 +92,7 @@ FileStateView & ClientView::add_file_state
 
 void ClientView::add_session
     (
-    boost::asio::ip::tcp::socket &&
+    boost::asio::ip::tcp::socket
                         session_socket,
     const distbuild::ClientSessionStartRequest &
                         session_start_msg,
@@ -195,15 +195,14 @@ void ClientView::add_session
         }         
     }     
     
-    std::shared_ptr<distbuild::ServerMessage> session_confirmed_msg =
-                std::make_shared<distbuild::ServerMessage>();
-    session_confirmed_msg->mutable_session_confirmed()->set_session_id
+    distbuild::ServerMessage session_confirmed_msg;
+    session_confirmed_msg.mutable_session_confirmed()->set_session_id
         (
         boost::uuids::to_string(session_uuid)
         );
 
     for (const std::string & requested_file_path : requested_files_client_paths) {
-        session_confirmed_msg->mutable_session_confirmed()->add_required_files
+        session_confirmed_msg.mutable_session_confirmed()->add_required_files
             (
             requested_file_path
             );
@@ -211,7 +210,8 @@ void ClientView::add_session
     
     // We should not request a file if it is a usr lib system file
     std::cout << "requested_files_client_paths size: " << requested_files_client_paths.size() << '\n';
-    new_session.start_session(session_confirmed_msg);   
+    new_session.send_msg(session_confirmed_msg);         
+    new_session.start_session();   
     try_compile_for_active_sessions();
 
 }   /* ClientView::add_session() */

@@ -135,7 +135,7 @@ boost::asio::awaitable<void> ClientSession::terminate_client_session() {
     
     boost::asio::steady_timer removal_timer(co_await boost::asio::this_coro::executor);
     while (_write_in_progress) {
-        removal_timer.expires_after(std::chrono::milliseconds(10));
+        removal_timer.expires_after(std::chrono::milliseconds(5));
         co_await removal_timer.async_wait(boost::asio::use_awaitable);
     }
 
@@ -282,11 +282,11 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
             ),
         boost::asio::use_awaitable
         );
-
-
-    send_msg(session_start_rqst);
-
+    
+    std::cout << "ClientSession::start_client_session right after async_connect\n";
     distbuild::ServerMessage session_confirmation_msg;
+    send_msg(session_start_rqst); 
+    // We fail to receive the session confirmed message ???
     co_await proto_io::receive_msg(_session_socket, session_confirmation_msg);
     if (session_confirmation_msg.content_case() == distbuild::ServerMessage::kSessionConfirmed) {
         _session_uuid = boost::uuids::string_generator() 
@@ -316,12 +316,13 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
             _handle_client_session(), 
             boost::asio::detached
             );
-                        
+        
         co_return true;
 
     }
     else {
         // What do we do in case of failure?
+        std::cout << "ClientSession::start_client_session FAILURE!!!!\n";
         co_return false;
     } 
     
@@ -460,6 +461,14 @@ boost::asio::awaitable<void> ClientSession::_writer_loop() {
     }
 
     _write_in_progress = false;
+    if (!_write_queue.empty()) {
+        _write_in_progress = true;
+        boost::asio::co_spawn(
+            _strand,
+            _writer_loop(),
+            boost::asio::detached
+        );
+    }
  
 }   /* ClientSession::_writer_loop() */
 

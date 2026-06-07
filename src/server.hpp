@@ -62,6 +62,11 @@ public:
 
     boost::asio::awaitable<void> listen_for_connections(); 
     
+    boost::asio::awaitable<void> handle_new_connection
+        (
+        boost::asio::ip::tcp::socket tcp_socket
+        );
+
     void set_advertiser_available_jobs(size_t available_jobs) {
         _resource_broadcaster.set_available_jobs(available_jobs);
     }

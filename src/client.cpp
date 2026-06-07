@@ -63,11 +63,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
         const std::vector<std::string> & cmd_line_args = 
             compiler_call->get_cmd_line_args();
         for (const std::string & arg : cmd_line_args) {
-            client_session_start_rqst->add_client_cmd_line_args
-                (
-                arg 
-                );
-            // std::cout << arg << '\n';
+            client_session_start_rqst->add_client_cmd_line_args(arg);
         }
 
         std::vector<std::string> idirs_args =
@@ -206,7 +202,7 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
             auto server_info_opt = _resource_listener.pick_compilation_server();
             if (server_info_opt) {
                 server_node = server_info_opt.value();
-                std::cout << "SERVER STATS: " << server_node.available_jobs << '\n';
+                // std::cout << "SERVER STATS: " << server_node.available_jobs << '\n';
                 break;
             }
             else {

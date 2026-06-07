@@ -80,7 +80,7 @@ public:
     
     void add_session
         (
-        boost::asio::ip::tcp::socket &&
+        boost::asio::ip::tcp::socket
                             session_socket,
         const distbuild::ClientSessionStartRequest &
                             session_start_msg,

@@ -87,25 +87,17 @@ public:
         return _current_working_dir;
     }
      
-    void start_session
-        (
-        std::shared_ptr<distbuild::ServerMessage>
-                    session_confirmed_msg
-        )
+    void start_session()
     {
         boost::asio::co_spawn
             (
             _session_socket.get_executor(), 
-            handle_session(session_confirmed_msg), 
+            handle_session(), 
             boost::asio::detached
             );
     }
 
-    boost::asio::awaitable<void> handle_session
-        (
-        std::shared_ptr<distbuild::ServerMessage>
-                    session_confirmed_msg
-        );
+    boost::asio::awaitable<void> handle_session();
 
     // Rewrite file upload chunk handling logic
     bool process_file_chunk
@@ -149,7 +141,7 @@ private:
     boost::asio::strand<boost::asio::any_io_executor>
                                     _strand{ _session_socket.get_executor() };
     std::deque<std::string>         _write_queue;
-    bool                            _write_in_progress;
+    std::atomic<bool>               _write_in_progress;
 
     Server *                        _server;
     CompilerManager *               _compiler_manager;

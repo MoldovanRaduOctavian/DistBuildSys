@@ -53,10 +53,10 @@ void ServerSession::preprocess_compiler_call
 
     // This needs to get figured out
     // _current_working_dir for the session can be retrieved from ClientView
-    std::cout << "CLIENT WORKING DIR: " << client_working_dir << '\n';
+    // std::cout << "CLIENT WORKING DIR: " << client_working_dir << '\n';
     std::string idirs_dir = _current_working_dir;
     _current_working_dir = cnvt_client_to_server_path(_current_working_dir, client_working_dir);    
-    std::cout << "SERVER WORKING DIR: " << _current_working_dir << '\n';
+    // std::cout << "SERVER WORKING DIR: " << _current_working_dir << '\n';
     
     std::lock_guard<std::mutex> lock(_mtx);
 
@@ -94,7 +94,7 @@ void ServerSession::preprocess_compiler_call
 #endif
 
     for (size_t arg_idx = 0; arg_idx < compiler_cmd_line_args.size(); ) {
-        std::cout << compiler_cmd_line_args[arg_idx] << '\n';
+        // std::cout << compiler_cmd_line_args[arg_idx] << '\n';
         if (compiler_cmd_line_args[arg_idx].ends_with(".cpp")) {
             ++arg_idx;
         }
@@ -111,11 +111,13 @@ void ServerSession::preprocess_compiler_call
     }
 
     _cmd_line_args.insert(_cmd_line_args.end(), {fixed_in_src_file, "-o", _out_obj_file});
-    
+
+#if 0
     std::cout << "REAL ARGS: \n";
     for (const auto & cmd_line_arg : _cmd_line_args) {
         std::cout << cmd_line_arg << "\n";
     }
+#endif
 
 }   /* ServerSession::preprocess_compiler_call() */
 
@@ -267,14 +269,11 @@ void ServerSession::send_compilation_result()
 
 }
 
-boost::asio::awaitable<void> ServerSession::handle_session
-    (
-    std::shared_ptr<distbuild::ServerMessage>
-                session_confirmed_msg
-    )
+boost::asio::awaitable<void> ServerSession::handle_session()
 {
     try {
-        send_msg(*session_confirmed_msg);         
+        // send_msg(*session_confirmed_msg);         
+        std::cout << "A NEW SESSION HAS STARTED\n";
         for (;;) {
             //receive and handle all types of packets from the client
             distbuild::ClientMessage client_message;
@@ -514,17 +513,25 @@ boost::asio::awaitable<void> ServerSession::terminate_server_session() {
         auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
         _session_socket.close();
     }
-    catch (...) {
-
+    catch (const std::exception & e) {
+        std::cout << e.what() << '\n';
     }
     // Accessing the object fields after this is particularly dangerous
     // Since it should be destroyed on removal
+    
+    boost::asio::steady_timer removal_timer(co_await boost::asio::this_coro::executor);
+    while (_write_in_progress) {
+        removal_timer.expires_after(std::chrono::milliseconds(5));
+        co_await removal_timer.async_wait(boost::asio::use_awaitable);
+    } 
+
     _compiler_manager->invalidate_requests_for_session(this);
     _parent_client_view->remove_session(_session_uuid);
 
 
 }   /* ServerSession::terminate_server_session() */
 
+#if 0
 
 void ServerSession::send_msg
     (
@@ -555,7 +562,6 @@ void ServerSession::send_msg
 
 }   /* ServerSession::send_msg() */
 
-
 boost::asio::awaitable<void> ServerSession::_writer_loop() {
     
     try {
@@ -579,6 +585,71 @@ boost::asio::awaitable<void> ServerSession::_writer_loop() {
 
 }   /* ServerSession::_writer_loop() */
 
+#endif
+
+void ServerSession::send_msg
+    (
+    const distbuild::ServerMessage & msg
+    )
+{
+    std::string msg_payload;
+    msg.SerializeToString(&msg_payload);
+
+    uint32_t network_msg_sz = htonl(msg_payload.size());
+    
+    std::string framed;
+    framed.append(reinterpret_cast<char *>(&network_msg_sz), sizeof(network_msg_sz));
+    framed.append(msg_payload);
+
+    boost::asio::dispatch(_strand,
+        [this, framed = std::move(framed)]() mutable {
+            _write_queue.push_back(std::move(framed));
+            if (!_write_in_progress) {
+                _write_in_progress = true;
+                boost::asio::co_spawn(
+                    _strand,
+                    _writer_loop(),
+                    boost::asio::detached
+                );
+            }
+        }
+    );
+
+}   /* ServerSession::send_msg() */
+
+
+boost::asio::awaitable<void> ServerSession::_writer_loop()
+{
+    try
+    {
+        while (!_write_queue.empty())
+        { 
+            std::string msg = std::move(_write_queue.front());
+            _write_queue.pop_front();
+
+            // release strand while doing I/O
+            co_await boost::asio::async_write(
+                _session_socket,
+                boost::asio::buffer(msg),
+                boost::asio::use_awaitable);
+        }
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "writer error: " << e.what() << '\n';
+    }
+
+    _write_in_progress = false;
+    if (!_write_queue.empty()) {
+        _write_in_progress = true;
+        boost::asio::co_spawn(
+            _strand,
+            _writer_loop(),
+            boost::asio::detached
+        );
+    }    
+
+}
 
 void ServerSession::set_available_compiler_jobs
     (
