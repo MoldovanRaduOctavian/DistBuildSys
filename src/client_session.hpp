@@ -65,6 +65,22 @@ public:
     
     ~ClientSession() {
         std::cout << "ClientSession " << boost::uuids::to_string(_session_uuid) << " WAS DESTROYED\n";
+
+        try {
+                
+            boost::system::error_code ec;
+            _session_socket.cancel();
+            auto ec1 = 
+                _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
+            _session_socket.close();
+            
+
+        }
+        catch (const std::exception & e) {
+            std::cout << e.what() << '\n';
+        }
+
+
     }
 
     void initialize_client_session

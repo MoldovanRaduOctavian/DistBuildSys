@@ -124,19 +124,7 @@ void ClientSession::send_abort_to_server() {
 void ClientSession::terminate_client_session() {
     
     std::lock_guard<std::mutex> lock(_mtx);
-    _terminated = true;
-    try {
-                
-        boost::system::error_code ec;
-        auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
-        _session_socket.close();
-        
-
-    }
-    catch (const std::exception & e) {
-        std::cout << e.what() << '\n';
-    }
-    
+    _terminated = true;    
     // Wait until writing ends     
     _client.remove_client_session(_session_uuid);
     std::cout << "DO WE ALWAYS GET AT THE END OF terminate_client_session?\n";

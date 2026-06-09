@@ -54,6 +54,15 @@ public:
     
     ~ServerSession() {
         std::cout << "SERVER SESSION DESTROYED: " << _session_uuid << '\n';
+        try { 
+            boost::system::error_code ec;
+            _session_socket.cancel();
+            auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
+            _session_socket.close();
+        }
+        catch (const std::exception & e) {
+            std::cout << e.what() << '\n';
+        }
     }
 
     void add_required_file_state

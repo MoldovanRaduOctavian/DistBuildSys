@@ -523,14 +523,7 @@ void ServerSession::terminate_server_session() {
     
     std::lock_guard<std::mutex> lock(_mtx);    
     _terminated = true;
-    try { 
-        boost::system::error_code ec;
-        auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
-        _session_socket.close();
-    }
-    catch (const std::exception & e) {
-        std::cout << e.what() << '\n';
-    }
+    
     // Accessing the object fields after this is particularly dangerous
     // Since it should be destroyed on removal
     
