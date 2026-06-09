@@ -30,7 +30,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
     )
 {   
     // This deallocates when the function ends ....
-    auto client_session = std::make_unique<ClientSession>(_io_ctx, *this, *compiler_call);
+    auto client_session = std::make_shared<ClientSession>(_io_ctx, *this, *compiler_call);
     distbuild::ClientMessage client_message;
     auto * client_session_start_rqst = 
         client_message.mutable_session_start();
@@ -132,7 +132,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
         // THIS IS BROKEN THIS NEEDS TO BE FIXED!!!
         // ... We need to invalidate the session somehow
         client_session->send_abort_to_server();
-        co_await client_session->terminate_client_session();
+        client_session->terminate_client_session();
         // Send the results back to the wrapper
         // Perform a session cleanup
         co_await client_session->perform_local_compilation();
@@ -230,7 +230,7 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         // The compilation session has finished
         // So we should dispose of it
         client_session->send_abort_to_server();
-        co_await client_session->terminate_client_session();
+        client_session->terminate_client_session();
         co_return unix_ipc_response;
         
     }

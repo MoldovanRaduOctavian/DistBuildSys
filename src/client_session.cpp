@@ -19,27 +19,32 @@
 #include "proto_io.hpp"
 #include "unix_ipc_socket.hpp"
 
-boost::asio::awaitable<void> ClientSession::_handle_client_session() {
+boost::asio::awaitable<void> ClientSession::_handle_client_session
+    (
+    std::shared_ptr<ClientSession> self
+    )
+{
    
     try {
         // This should end when the compilation is done
-        _send_required_file();        
-        for (;;) {
+        self->_send_required_file();        
+        while (!self->_terminated) {
             
             distbuild::ServerMessage server_message;
-            co_await proto_io::receive_msg(_session_socket, server_message);
+            co_await proto_io::receive_msg(self->_session_socket, server_message);
             switch (server_message.content_case()) {
                 case distbuild::ServerMessage::kSessionConfirmed:
                     break;
                 case distbuild::ServerMessage::kSessionAbort:
                     // What do you do in case of abort???
-                    co_await perform_local_compilation();
-                    co_await terminate_client_session();
+                    co_await self->perform_local_compilation();
+                    self->terminate_client_session();
                     co_return;
                     break;
                 case distbuild::ServerMessage::kFileUpComplete:
                     // Do we even check the contents of this packet?
-                    if (server_message.file_up_complete().session_id() ==  boost::uuids::to_string(_session_uuid)
+                    if (server_message.file_up_complete().session_id() 
+                        ==  boost::uuids::to_string(self->_session_uuid)
                      && server_message.file_up_complete().success() == true) {
                         _send_required_file();
                     }
@@ -48,9 +53,9 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                         // Do we retry sending that packet?
                         // Do we go for local compilation?
                         // Do we end the session?
-                        co_await perform_local_compilation();
-                        send_abort_to_server();
-                        co_await terminate_client_session();
+                        co_await self->perform_local_compilation();
+                        self->send_abort_to_server();
+                        self->terminate_client_session();
                         co_return;
                     }
 
@@ -65,14 +70,16 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session() {
                             server_message.obj_file_chunk_transmit()
                         );
 
-                    bool obj_chunk_upload_success = co_await _process_obj_file_chunk(obj_chunk_msg);
+                    bool obj_chunk_upload_success = 
+                        co_await self->_process_obj_file_chunk(obj_chunk_msg);
+
                     if (obj_chunk_upload_success == false) {
                         // Handle failure gracefully
                         // Fall back to local compilation
                         // Cleanup the current session
-                        co_await perform_local_compilation();
-                        send_abort_to_server();
-                        co_await terminate_client_session();
+                        co_await self->perform_local_compilation();
+                        self->send_abort_to_server();
+                        self->terminate_client_session();
                         co_return;
                     }
 
@@ -114,14 +121,10 @@ void ClientSession::send_abort_to_server() {
 
 }   /* ClientSession::send_abort_to_server() */
 
-boost::asio::awaitable<void> ClientSession::terminate_client_session() {
+void ClientSession::terminate_client_session() {
     
-    co_await boost::asio::dispatch(
-        _strand,
-        boost::asio::use_awaitable
-    );
-
     std::lock_guard<std::mutex> lock(_mtx);
+    _terminated = true;
     try {
                 
         boost::system::error_code ec;
@@ -134,15 +137,9 @@ boost::asio::awaitable<void> ClientSession::terminate_client_session() {
         std::cout << e.what() << '\n';
     }
     
-    // This crap might cause use some race conditions
-    boost::asio::steady_timer removal_timer(co_await boost::asio::this_coro::executor);
-    while (_write_in_progress) {
-        removal_timer.expires_after(std::chrono::seconds(1));
-        co_await removal_timer.async_wait(boost::asio::use_awaitable);
-    }
-
     // Wait until writing ends     
-    // _client.remove_client_session(_session_uuid);
+    _client.remove_client_session(_session_uuid);
+    std::cout << "DO WE ALWAYS GET AT THE END OF terminate_client_session?\n";
 
 }   /* ClientSession::terminate_client_session() */
 
@@ -227,6 +224,7 @@ boost::asio::awaitable<bool> ClientSession::_process_obj_file_chunk
     }    
     
     if (!obj_transfer_state.obj_out_stream) {
+        std::cout << "INVALID OBJECT FILENAME: " << obj_transfer_state.filename << '\n';
         throw std::runtime_error{"INVALID OBJECT FILE EXCEPTION!"};
     }
 
@@ -319,11 +317,11 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
             session_confirmed.required_files().end()
             };
 
-
+        auto self = shared_from_this();
         boost::asio::co_spawn
             (
             _session_socket.get_executor(), 
-            _handle_client_session(), 
+            _handle_client_session(self), 
             boost::asio::detached
             );
         
@@ -434,15 +432,16 @@ void ClientSession::send_msg
     std::string framed;
     framed.append(reinterpret_cast<char *>(&network_msg_sz), sizeof(network_msg_sz));
     framed.append(msg_payload);
-
+    
+    auto self = shared_from_this();
     boost::asio::dispatch(_strand,
-        [this, framed = std::move(framed)]() mutable {
-            _write_queue.push_back(std::move(framed));
-            if (!_write_in_progress) {
-                _write_in_progress = true;
+        [self, framed = std::move(framed)]() mutable {
+            self->_write_queue.push_back(std::move(framed));
+            if (!self->_write_in_progress) {
+                self->_write_in_progress = true;
                 boost::asio::co_spawn(
-                    _strand,
-                    _writer_loop(),
+                    self->_strand,
+                    self->_writer_loop(self),
                     boost::asio::detached
                 );
             }
@@ -451,31 +450,35 @@ void ClientSession::send_msg
 }   /* ClientSession::send_msg() */
 
 
-boost::asio::awaitable<void> ClientSession::_writer_loop() {
+boost::asio::awaitable<void> ClientSession::_writer_loop
+    (
+    std::shared_ptr<ClientSession>  self
+    ) 
+{
 
-   try {
-        while (!_write_queue.empty()) {
-            std::string & msg = _write_queue.front();
+    try {
+        while (!self->_write_queue.empty()) {
+            std::string & msg = self->_write_queue.front();
             
             co_await boost::asio::async_write(
-                _session_socket,
+                self->_session_socket,
                 boost::asio::buffer(msg),
                 boost::asio::use_awaitable
             );
 
-            _write_queue.pop_front();
+            self->_write_queue.pop_front();
         }
     }
     catch (std::exception & e) {
         std::cout << e.what() << '\n';
     }
 
-    _write_in_progress = false;
-    if (!_write_queue.empty()) {
-        _write_in_progress = true;
+    self->_write_in_progress = false;
+    if (!self->_write_queue.empty()) {
+        self->_write_in_progress = true;
         boost::asio::co_spawn(
-            _strand,
-            _writer_loop(),
+            self->_strand,
+            self->_writer_loop(self),
             boost::asio::detached
         );
     }

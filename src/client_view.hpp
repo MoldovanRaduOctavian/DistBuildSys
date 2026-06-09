@@ -129,7 +129,7 @@ private:
     // at the same time
     // The client should own its sessions, not the server
     // The server should own the client storage though
-    std::unordered_map<std::string, ServerSession>
+    std::unordered_map<std::string, std::shared_ptr<ServerSession>>
                             _associated_sessions;
     
     // Does this client directory exist on the server side?

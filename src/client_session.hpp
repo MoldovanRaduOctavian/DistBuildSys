@@ -20,7 +20,7 @@
 
 class Client;
 
-class ClientSession {
+class ClientSession : public std::enable_shared_from_this<ClientSession> {
     
     struct ObjFileTransferState {
         bool            is_finished;
@@ -57,6 +57,7 @@ public:
         _io_ctx(io_ctx),
         _session_socket(_io_ctx),
         _client(client),
+        _terminated(false),
         _compiler_call(compiler_call),
         _req_files_send_idx(0),
         _unix_ipc_channel(_io_ctx, 1)
@@ -94,7 +95,7 @@ public:
     boost::asio::awaitable<void> perform_local_compilation();
     
     void send_abort_to_server();
-    boost::asio::awaitable<void> terminate_client_session();
+    void terminate_client_session();
     
     boost::asio::awaitable<UnixIpcResponse> retrieve_unix_ipc_response() {
         UnixIpcResponse response = 
@@ -125,9 +126,12 @@ private:
     
     void                            _send_required_file();
     
-    boost::asio::awaitable<void>    _handle_client_session();
+    boost::asio::awaitable<void>    _handle_client_session
+                                    (
+                                    std::shared_ptr<ClientSession> self
+                                    );
 
-    boost::asio::awaitable<void>    _writer_loop();
+    boost::asio::awaitable<void>    _writer_loop(std::shared_ptr<ClientSession> self);
     
     // This most likely will hold a handle to an invocation object
 
@@ -142,7 +146,8 @@ private:
                                     _strand{ _session_socket.get_executor() };
     std::deque<std::string>         _write_queue;
     std::atomic<bool>               _write_in_progress;    
-    
+    std::atomic<bool>               _terminated;
+
     boost::uuids::uuid              _session_uuid;
 
     std::vector<std::string>        _required_files;

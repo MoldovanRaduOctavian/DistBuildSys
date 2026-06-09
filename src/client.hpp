@@ -112,7 +112,7 @@ private:
     
     IncludesCache                   _includes_cache;
 
-    std::unordered_map<std::string, std::unique_ptr<ClientSession>>
+    std::unordered_map<std::string, std::shared_ptr<ClientSession>>
                                     _client_sessions;
     std::unordered_map<std::string, std::unique_ptr<CompilerCall>>
                                     _client_compiler_calls;

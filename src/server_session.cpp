@@ -283,22 +283,25 @@ void ServerSession::send_compilation_result()
 
 }
 
-boost::asio::awaitable<void> ServerSession::handle_session()
+boost::asio::awaitable<void> ServerSession::handle_server_session
+    (
+    std::shared_ptr<ServerSession>  self
+    )
 {
     try {
         // send_msg(*session_confirmed_msg);         
         std::cout << "A NEW SESSION HAS STARTED\n";
-        for (;;) {
+        while (!self->_terminated) {
             //receive and handle all types of packets from the client
             distbuild::ClientMessage client_message;
-            co_await proto_io::receive_msg(_session_socket, client_message);
+            co_await proto_io::receive_msg(self->_session_socket, client_message);
             switch (client_message.content_case()) {
                 case distbuild::ClientMessage::kSessionStart:
-                    _parent_client_view->update_last_active_ts();
+                    self->_parent_client_view->update_last_active_ts();
                     break;
 
                 case distbuild::ClientMessage::kFileChunkUpload: {
-                    _parent_client_view->update_last_active_ts();
+                    self->_parent_client_view->update_last_active_ts();
 
                     auto file_chunk_msg = 
                         std::make_shared<distbuild::ClientFileChunkUploadRequest>
@@ -313,10 +316,10 @@ boost::asio::awaitable<void> ServerSession::handle_session()
                         distbuild::ServerMessage session_abort_msg;
                         session_abort_msg.mutable_session_abort()->set_session_id
                             (
-                            boost::uuids::to_string(_session_uuid)
+                            boost::uuids::to_string(self->_session_uuid)
                             );
                         
-                        send_msg(session_abort_msg);
+                        self->send_msg(session_abort_msg);
 
                     }
 
@@ -327,13 +330,13 @@ boost::asio::awaitable<void> ServerSession::handle_session()
                 case distbuild::ClientMessage::kSessionAbort:
                     // We need to dispose of this session
                     std::cout << "DO WE ALWAYS RECEIVE kSessionAbort ???\n";
-                    co_await terminate_server_session();
+                    self->terminate_server_session();
                     co_return;
                     break;
 
                 default:
                     std::cout << "DO WE EVER GET A DEFAULT MESSAGE FROM CLIENT?\n";
-                    co_await terminate_server_session();
+                    self->terminate_server_session();
                     co_return;
                     break;
             }
@@ -516,14 +519,10 @@ bool ServerSession::process_file_chunk
 }   /* ServerSession::process_file_chunk() */
 
 
-boost::asio::awaitable<void> ServerSession::terminate_server_session() {
+void ServerSession::terminate_server_session() {
     
-    co_await boost::asio::dispatch(
-        _strand,
-        boost::asio::use_awaitable
-    );
-
     std::lock_guard<std::mutex> lock(_mtx);    
+    _terminated = true;
     try { 
         boost::system::error_code ec;
         auto ec1 = _session_socket.shutdown(boost::asio::socket_base::shutdown_both, ec);
@@ -535,12 +534,6 @@ boost::asio::awaitable<void> ServerSession::terminate_server_session() {
     // Accessing the object fields after this is particularly dangerous
     // Since it should be destroyed on removal
     
-    boost::asio::steady_timer removal_timer(co_await boost::asio::this_coro::executor);
-    while (_write_in_progress) {
-        removal_timer.expires_after(std::chrono::milliseconds(5));
-        co_await removal_timer.async_wait(boost::asio::use_awaitable);
-    } 
-
     _compiler_manager->invalidate_requests_for_session(this);
     _parent_client_view->remove_session(_session_uuid);
 
@@ -561,15 +554,16 @@ void ServerSession::send_msg
     std::string framed;
     framed.append(reinterpret_cast<char *>(&network_msg_sz), sizeof(network_msg_sz));
     framed.append(msg_payload);
-
+    
+    auto self = shared_from_this();
     boost::asio::dispatch(_strand,
-        [this, framed = std::move(framed)]() mutable {
-            _write_queue.push_back(std::move(framed));
-            if (!_write_in_progress) {
-                _write_in_progress = true;
+        [self, framed = std::move(framed)]() mutable {
+            self->_write_queue.push_back(std::move(framed));
+            if (!self->_write_in_progress) {
+                self->_write_in_progress = true;
                 boost::asio::co_spawn(
-                    _strand,
-                    _writer_loop(),
+                    self->_strand,
+                    self->_writer_loop(self),
                     boost::asio::detached
                 );
             }
@@ -579,18 +573,21 @@ void ServerSession::send_msg
 }   /* ServerSession::send_msg() */
 
 
-boost::asio::awaitable<void> ServerSession::_writer_loop()
+boost::asio::awaitable<void> ServerSession::_writer_loop
+    (
+    std::shared_ptr<ServerSession>  self
+    )
 {
     try
     {
-        while (!_write_queue.empty())
+        while (!self->_write_queue.empty())
         { 
-            std::string msg = std::move(_write_queue.front());
-            _write_queue.pop_front();
+            std::string msg = std::move(self->_write_queue.front());
+            self->_write_queue.pop_front();
 
             // release strand while doing I/O
             co_await boost::asio::async_write(
-                _session_socket,
+                self->_session_socket,
                 boost::asio::buffer(msg),
                 boost::asio::use_awaitable);
         }
@@ -600,12 +597,12 @@ boost::asio::awaitable<void> ServerSession::_writer_loop()
         std::cout << "writer error: " << e.what() << '\n';
     }
 
-    _write_in_progress = false;
-    if (!_write_queue.empty()) {
-        _write_in_progress = true;
+    self->_write_in_progress = false;
+    if (!self->_write_queue.empty()) {
+        self->_write_in_progress = true;
         boost::asio::co_spawn(
-            _strand,
-            _writer_loop(),
+            self->_strand,
+            self->_writer_loop(self),
             boost::asio::detached
         );
     }    

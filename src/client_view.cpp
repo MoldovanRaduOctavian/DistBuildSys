@@ -107,12 +107,15 @@ void ClientView::add_session
         auto [session_it, ok] = _associated_sessions.try_emplace
             (
             boost::uuids::to_string(session_uuid),
-            std::move(session_socket),
-            server,
-            this,
-            compiler_manager,
-            session_uuid,
-            session_start_msg
+            std::make_shared<ServerSession>
+                (
+                std::move(session_socket),
+                server,
+                this,
+                compiler_manager,
+                session_uuid,
+                session_start_msg
+                )
             );
        
         for (const distbuild::FileInfo & file_info : session_start_msg.required_files_info()) {
@@ -120,7 +123,7 @@ void ClientView::add_session
             if (!file_info.filename().empty()) {
                 FileStateView & new_file_state = 
                     add_file_state(file_info.filename(), file_info.filesize(), file_info.filehash()); 
-                session_it->second.add_required_file_state(new_file_state);
+                session_it->second->add_required_file_state(new_file_state);
 
             } 
 
@@ -128,7 +131,7 @@ void ClientView::add_session
     
     }
     
-    ServerSession & new_session = _associated_sessions.find(boost::uuids::to_string(session_uuid))->second;
+    ServerSession & new_session = *_associated_sessions.find(boost::uuids::to_string(session_uuid))->second;
 
     const std::vector<std::string> client_cmd_line_args
         {
@@ -240,7 +243,7 @@ void ClientView::try_compile_for_active_sessions
     
     std::lock_guard<std::mutex> lock(_mtx);
     for (auto & [_, session] : _associated_sessions) {
-        session.try_request_src_compilation(lock_session_mtx);
+        session->try_request_src_compilation(lock_session_mtx);
     }
 
 }   /* ClientView::try_compile_for_active_sessions() */

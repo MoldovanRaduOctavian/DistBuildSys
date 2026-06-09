@@ -2,6 +2,7 @@
 #define SERVER_SESSION_HPP
 
 #include <deque>
+#include <memory>
 #include <mutex>
 #include <string>
 
@@ -21,7 +22,7 @@ class CompilerManager;
 struct CompilationOutput;
 class Server;
 
-class ServerSession {
+class ServerSession : public std::enable_shared_from_this<ServerSession> {
 
 public:
 
@@ -39,6 +40,7 @@ public:
         ) :
         _session_socket(std::move(session_socket)),
         _compiler_manager(compiler_manager),
+        _terminated(false),
         _server(server),
         _parent_client_view(parent_client_view),
         _session_uuid(session_uuid),
@@ -89,15 +91,19 @@ public:
      
     void start_session()
     {
+        auto self = shared_from_this();
         boost::asio::co_spawn
             (
             _session_socket.get_executor(), 
-            handle_session(), 
+            handle_server_session(self), 
             boost::asio::detached
             );
     }
 
-    boost::asio::awaitable<void> handle_session();
+    boost::asio::awaitable<void> handle_server_session
+            (
+            std::shared_ptr<ServerSession> self
+            );
 
     // Rewrite file upload chunk handling logic
     bool process_file_chunk
@@ -131,17 +137,18 @@ public:
     
     void set_available_compiler_jobs(size_t available_jobs); 
 
-    boost::asio::awaitable<void> terminate_server_session(); 
+    void terminate_server_session(); 
 
 private:
 
-    boost::asio::awaitable<void>    _writer_loop();
+    boost::asio::awaitable<void>    _writer_loop(std::shared_ptr<ServerSession> self);
 
     boost::asio::ip::tcp::socket    _session_socket;
     boost::asio::strand<boost::asio::any_io_executor>
                                     _strand{ _session_socket.get_executor() };
     std::deque<std::string>         _write_queue;
     std::atomic<bool>               _write_in_progress;
+    std::atomic<bool>               _terminated;
 
     Server *                        _server;
     CompilerManager *               _compiler_manager;
