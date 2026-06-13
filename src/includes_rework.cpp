@@ -13,6 +13,7 @@
 
 #include "file_state_view.hpp"
 
+#if 0
 static bool find_file_includes
     (
     std::ifstream &                 input_stream,
@@ -53,7 +54,80 @@ static bool find_file_includes
     return true;
 
 }
+#endif
 
+static bool find_file_includes
+(
+    std::ifstream & input_stream,
+    std::vector<IncludeDirective> & found_includes
+)
+{
+    if (!input_stream.is_open()) {
+        return false;
+    }
+
+    found_includes.clear();
+
+    std::string line;
+
+    while (std::getline(input_stream, line)) {
+
+        // --- find #include ---
+        std::string::size_type pos = line.find("#include");
+        if (pos == std::string::npos) {
+            continue;
+        }
+
+        pos += 8; // length of "#include"
+
+        // --- skip whitespace ---
+        while (pos < line.size() && std::isspace(static_cast<unsigned char>(line[pos]))) {
+            ++pos;
+        }
+
+        if (pos >= line.size()) {
+            continue;
+        }
+
+        IncludeDirective::IncludeType type;
+        std::string included_file;
+
+        // --- angle includes <...> ---
+        if (line[pos] == '<') {
+            type = IncludeDirective::IncludeType::INCLUDE_TYPE_ANGLE;
+            ++pos;
+
+            auto end = line.find('>', pos);
+            if (end == std::string::npos) {
+                continue;
+            }
+
+            included_file = line.substr(pos, end - pos);
+        }
+
+        // --- quote includes "..." ---
+        else if (line[pos] == '"') {
+            type = IncludeDirective::IncludeType::INCLUDE_TYPE_QUOTE;
+            ++pos;
+
+            auto end = line.find('"', pos);
+            if (end == std::string::npos) {
+                continue;
+            }
+
+            included_file = line.substr(pos, end - pos);
+        }
+        else {
+            continue;
+        }
+
+        found_includes.emplace_back(included_file, type);
+    }
+
+    input_stream.clear();
+    input_stream.seekg(0, std::ios::beg);
+    return true;
+}
 
 static bool requires_inc_storage
     (
