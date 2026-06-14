@@ -210,12 +210,7 @@ boost::asio::awaitable<bool> ClientSession::_process_obj_file_chunk
         obj_transfer_state.obj_out_stream.close();
         co_return false;
     }    
-    
-    if (!obj_transfer_state.obj_out_stream) {
-        std::cout << "INVALID OBJECT FILENAME: " << obj_transfer_state.filename << '\n';
-        throw std::runtime_error{"INVALID OBJECT FILE EXCEPTION!"};
-    }
-
+     
     obj_transfer_state.obj_out_stream.write
         (
         obj_file_chunk_msg->data().data(),

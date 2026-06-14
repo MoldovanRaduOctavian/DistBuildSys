@@ -88,25 +88,20 @@ bool CompilerCall::initialize_compiler_call
             _compiler_type = cmd_line_contents[arg_idx];
         }
         else if (cmd_line_contents[arg_idx].starts_with('-')) {
+            
+            if (!cmd_line_contents[arg_idx].starts_with(ARG_DASH_I)) {
+                _cmd_line_args.emplace_back(cmd_line_contents[arg_idx]);
+            }            
 
-            _cmd_line_args.emplace_back(cmd_line_contents[arg_idx]);
+            if (cmd_line_contents[arg_idx].starts_with(ARG_DASH_I)) {                
+                auto dash_i_path = get_abs_path(
+                    compiler_call_directory, 
+                    cmd_line_contents[arg_idx].substr(2)
+                );
+                // std::cout << dash_i_path << '\n';
+                _cmd_line_include_dirs.dash_i.emplace_back(dash_i_path);
+                // _cmd_line_args.emplace_back("-I" + dash_i_path);
 
-            if (cmd_line_contents[arg_idx] == ARG_DASH_I) {
-                const auto & [status, next_arg] = get_next_arg(arg_idx);
-                if (status) {
-                    auto dash_i_path = 
-                        get_abs_path(compiler_call_directory, next_arg);
-                    _cmd_line_include_dirs.dash_i.emplace_back(
-                        dash_i_path
-                    );
-                    _cmd_line_args.emplace_back(dash_i_path);
-
-                    ++arg_idx;
-                }
-                else {
-                    _compiler_call_type = CallType::CALL_TYPE_COUNT;
-                    return false;
-                }
             }
             else if (cmd_line_contents[arg_idx] == ARG_DASH_ISYSTEM) {
                 const auto & [status, next_arg] = get_next_arg(arg_idx);
@@ -266,7 +261,7 @@ std::vector<IncludeInfo> CompilerCall::collect_src_file_dependencies
     if ( src_file_parser.parse_source_file_includes
         (
         _input_src_file,
-        _cmd_line_include_dirs.dash_i
+        _cmd_line_include_dirs.dash_include
         ) == false ) {
         std::cout << "PARSING A SOURCE FILE INCLUDE HAS FAILED\n";
         return std::vector<IncludeInfo>{};

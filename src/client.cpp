@@ -41,7 +41,8 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
             (
             boost::uuids::to_string(_client_uuid)
             );
-
+        
+        
         // I think that all paths should be converted to absolute paths
         // TODO ENFORCE THIS !!!
         client_session_start_rqst->set_client_working_dir
@@ -53,25 +54,26 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
             (
             compiler_call->get_compiler_type()
             );
-
-        std::string src_file_path = compiler_call->get_input_src_file();
-        client_session_start_rqst->set_client_source_file
-            (
-            src_file_path
-            );
         
         const std::vector<std::string> & cmd_line_args = 
             compiler_call->get_cmd_line_args();
         for (const std::string & arg : cmd_line_args) {
             client_session_start_rqst->add_client_cmd_line_args(arg);
         }
-
+        
         std::vector<std::string> idirs_args =
             compiler_call->get_cmd_line_include_dirs().cnvt_to_cmd_line_args();
         for (const std::string & idir : idirs_args) {
             client_session_start_rqst->add_client_idirs(idir);
         }
-            
+
+
+        std::string src_file_path = compiler_call->get_input_src_file();
+        client_session_start_rqst->set_client_source_file
+            (
+            src_file_path
+            );
+                    
         std::ifstream src_file_stream(src_file_path);
         boost::uuids::detail::sha1::digest_type src_file_sha1{0};
         generate_file_sha1(src_file_stream, src_file_sha1);
@@ -99,7 +101,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
             file_info->set_filehash(include_info.include_hash);
             file_info->set_filesize(include_info.include_sz_bytes);
         }
-    
+        
     }
 
     boost::uuids::uuid session_uuid{0};

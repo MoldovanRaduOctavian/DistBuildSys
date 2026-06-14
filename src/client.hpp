@@ -37,6 +37,7 @@ public:
                 co_return co_await _handle_ipc_request(ipc_request);                
             }),
         _resource_listener(io_ctx, advertising_port),
+        _system_include_dirs(true),
         _includes_cache(_system_include_dirs)
         {
         // _client_uuid could be read out of a YAML
@@ -108,7 +109,7 @@ private:
     
     ResourceListener                _resource_listener;
 
-    CmdLineIncludeDirs              _system_include_dirs{true};
+    CmdLineIncludeDirs              _system_include_dirs;
     
     IncludesCache                   _includes_cache;
 

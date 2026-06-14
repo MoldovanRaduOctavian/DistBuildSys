@@ -14,53 +14,13 @@
 #include "file_state_view.hpp"
 
 #if 0
+
 static bool find_file_includes
     (
-    std::ifstream &                 input_stream,
-    std::vector<IncludeDirective> & found_includes   
+    std::ifstream &     input_stream,
+    std::vector<IncludeDirective> & 
+                        found_includes
     )
-{
-    if (!input_stream.is_open()) {
-        return false;
-    }    
-    
-    std::string     input_line{};
-    boost::regex    angle_inc_regex(R"(^\s*#include\s*([<])([^>]+)[>])");
-    boost::regex    quote_inc_regex(R"(^\s*#include\s*(["])([^"]+)["])");
-    boost::smatch   match;
-    
-    found_includes.clear();
-    while (std::getline(input_stream, input_line)) {
-        if (boost::regex_match(input_line, match, angle_inc_regex)) {
-            found_includes.emplace_back(
-                IncludeDirective(
-                    match[2],
-                    IncludeDirective::IncludeType::INCLUDE_TYPE_ANGLE
-                )
-            );
-        }
-        else if (boost::regex_match(input_line, match, quote_inc_regex)) {
-            found_includes.emplace_back(
-                IncludeDirective(
-                    match[2],
-                    IncludeDirective::IncludeType::INCLUDE_TYPE_QUOTE
-                )
-            );
-        }
-    }
-    
-    input_stream.clear();
-    input_stream.seekg(0, std::ios::beg);
-    return true;
-
-}
-#endif
-
-static bool find_file_includes
-(
-    std::ifstream & input_stream,
-    std::vector<IncludeDirective> & found_includes
-)
 {
     if (!input_stream.is_open()) {
         return false;
@@ -129,6 +89,220 @@ static bool find_file_includes
     return true;
 }
 
+#endif
+
+#if 0
+
+static bool find_file_includes
+(
+    std::ifstream& input_stream,
+    std::vector<IncludeDirective>& found_includes
+)
+{
+    if (!input_stream.is_open())
+    {
+        return false;
+    }
+
+    found_includes.clear();
+
+    std::string line;
+
+    while (std::getline(input_stream, line))
+    {
+        // Find the preprocessor directive marker.
+        std::string::size_type pos = line.find('#');
+        if (pos == std::string::npos)
+        {
+            continue;
+        }
+
+        ++pos; // Skip '#'
+
+        // Allow whitespace between '#' and 'include'.
+        while (pos < line.size() &&
+               std::isspace(static_cast<unsigned char>(line[pos])))
+        {
+            ++pos;
+        }
+
+        constexpr char include_keyword[] = "include";
+        constexpr std::size_t include_length = sizeof(include_keyword) - 1;
+
+        if (line.compare(pos, include_length, include_keyword) != 0)
+        {
+            continue;
+        }
+
+        pos += include_length;
+
+        // Allow whitespace between 'include' and the filename.
+        while (pos < line.size() &&
+               std::isspace(static_cast<unsigned char>(line[pos])))
+        {
+            ++pos;
+        }
+
+        if (pos >= line.size())
+        {
+            continue;
+        }
+
+        IncludeDirective::IncludeType type;
+        std::string included_file;
+
+        if (line[pos] == '<')
+        {
+            type = IncludeDirective::IncludeType::INCLUDE_TYPE_ANGLE;
+            ++pos;
+
+            auto end = line.find('>', pos);
+            if (end == std::string::npos)
+            {
+                continue;
+            }
+
+            included_file = line.substr(pos, end - pos);
+        }
+        else if (line[pos] == '"')
+        {
+            type = IncludeDirective::IncludeType::INCLUDE_TYPE_QUOTE;
+            ++pos;
+
+            auto end = line.find('"', pos);
+            if (end == std::string::npos)
+            {
+                continue;
+            }
+
+            included_file = line.substr(pos, end - pos);
+        }
+        else
+        {
+            continue;
+        }
+
+        found_includes.emplace_back(std::move(included_file), type);
+    }
+
+    // Reset the stream for future use.
+    input_stream.clear();
+    input_stream.seekg(0, std::ios::beg);
+
+    return true;
+}
+
+#endif
+
+static bool find_file_includes
+(
+    std::ifstream& input_stream,
+    std::vector<IncludeDirective>& found_includes
+)
+{
+    if (!input_stream.is_open())
+    {
+        return false;
+    }
+
+    found_includes.clear();
+
+    std::string line;
+
+    while (std::getline(input_stream, line))
+    {
+        auto pos = line.find('#');
+        if (pos == std::string::npos)
+        {
+            continue;
+        }
+
+        ++pos;
+
+        // skip whitespace after '#'
+        while (pos < line.size() &&
+               std::isspace(static_cast<unsigned char>(line[pos])))
+        {
+            ++pos;
+        }
+
+        constexpr char include_kw[] = "include";
+        constexpr char include_next_kw[] = "include_next";
+
+        bool matched = false;
+
+        // Accept include_next first (longer token)
+        if (line.compare(pos, sizeof(include_next_kw) - 1, include_next_kw) == 0)
+        {
+            pos += sizeof(include_next_kw) - 1;
+            matched = true;
+        }
+        else if (line.compare(pos, sizeof(include_kw) - 1, include_kw) == 0)
+        {
+            pos += sizeof(include_kw) - 1;
+            matched = true;
+        }
+
+        if (!matched)
+        {
+            continue;
+        }
+
+        // skip whitespace after keyword
+        while (pos < line.size() &&
+               std::isspace(static_cast<unsigned char>(line[pos])))
+        {
+            ++pos;
+        }
+
+        if (pos >= line.size())
+        {
+            continue;
+        }
+
+        IncludeDirective::IncludeType type;
+        std::string included_file;
+
+        if (line[pos] == '<')
+        {
+            type = IncludeDirective::IncludeType::INCLUDE_TYPE_ANGLE;
+            ++pos;
+
+            auto end = line.find('>', pos);
+            if (end == std::string::npos)
+            {
+                continue;
+            }
+
+            included_file = line.substr(pos, end - pos);
+        }
+        else if (line[pos] == '"')
+        {
+            type = IncludeDirective::IncludeType::INCLUDE_TYPE_QUOTE;
+            ++pos;
+
+            auto end = line.find('"', pos);
+            if (end == std::string::npos)
+            {
+                continue;
+            }
+
+            included_file = line.substr(pos, end - pos);
+        }
+        else
+        {
+            continue;
+        }
+
+        found_includes.emplace_back(std::move(included_file), type);
+    }
+
+    input_stream.clear();
+    input_stream.seekg(0, std::ios::beg);
+
+    return true;
+}
+
 static bool requires_inc_storage
     (
     const std::string &     include_filename,
@@ -164,24 +338,25 @@ bool CmdLineIncludeDirs::find_system_includes
     const std::string &     compiler
     )
 {
-    boost::process::ipstream    cc_stream;
+    boost::process::ipstream    cpp_stream;
     
     // Process search path will break
-    boost::process::child       cc_proc(
+    boost::process::child       cpp_proc(
         compiler,
         "-Wp,-v", "-x", 
         "c++", "/dev/null", "-fsyntax-only",
-        boost::process::std_err > cc_stream
+        boost::process::std_err > cpp_stream
     );
-     
+    
     boost::regex    inc_dir_regex(R"(^\s*(\/\S+))");
     boost::smatch   match;
     std::string     input_line;
-    
-    while (cc_proc.running() 
-            && std::getline(cc_stream, input_line)
-            && !input_line.empty()) {
 
+    while (cpp_proc.running() 
+            && std::getline(cpp_stream, input_line)
+            && !input_line.empty()) {
+        
+        std::cout << input_line << '\n';
         if (input_line.find("ignoring") != std::string::npos) {
             continue;
         }
@@ -200,9 +375,8 @@ bool CmdLineIncludeDirs::find_system_includes
 
     }
 
-    cc_proc.wait();
+    cpp_proc.wait();
     return true;
-
 }
 
 
@@ -213,11 +387,14 @@ bool SourceFileParser::parse_source_file_includes
                         cmd_line_includes   /* includes specified in the cmd line?!?!   */
     )
 {
+
+    std::cout << "BEFORE parse_source_file_includes begins\n";
     std::ifstream cpp_source_stream(cpp_abs_path);
     if (!cpp_source_stream.is_open()) {
         return false;
     }
-    
+    std::cout << "AFTER parse_source_file_includes_ began\n";
+
     // These are all treated as IncludeDirective angle (#include <...>)
     for (const std::string & cmd_line_inc_directive : cmd_line_includes) {
         if (!_process_include_directive(

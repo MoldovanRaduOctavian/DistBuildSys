@@ -75,12 +75,22 @@ void ServerSession::preprocess_compiler_call
         );
 
     _cmd_line_args.clear();
-    for (size_t idir_idx = 0; idir_idx < compiler_idirs.size(); idir_idx += 2) {
-        _cmd_line_args.emplace_back(compiler_idirs[idir_idx]);
-        _cmd_line_args.emplace_back
-            (
-            cnvt_client_to_server_path(idirs_dir, compiler_idirs[idir_idx + 1])    
+    
+    // Idirs -I<dir> and -isystem <dir> are the most important I think
+    for (size_t idir_idx = 0; idir_idx < compiler_idirs.size();) {
+        if (compiler_idirs[idir_idx].starts_with("-I")) {
+            std::string i_path = 
+                "-I" + cnvt_client_to_server_path(idirs_dir, compiler_idirs[idir_idx].substr(2));
+            _cmd_line_args.emplace_back(i_path);
+            ++idir_idx;
+        }
+        else {
+            _cmd_line_args.emplace_back(compiler_idirs[idir_idx]);
+            _cmd_line_args.emplace_back(
+                cnvt_client_to_server_path(idirs_dir, compiler_idirs[idir_idx + 1])    
             );
+            idir_idx += 2;
+        }
     }
 
 #if 0
@@ -115,10 +125,24 @@ void ServerSession::preprocess_compiler_call
         else if (compiler_cmd_line_args[arg_idx].ends_with("-o")) {
             arg_idx += 2;
         }
+        else if (compiler_cmd_line_args[arg_idx].starts_with("/")){
+            auto server_path =  
+                cnvt_client_to_server_path(idirs_dir, compiler_cmd_line_args[arg_idx]);
+            std::filesystem::create_directories
+                (
+                std::filesystem::path(server_path).parent_path()
+                );
+
+            _cmd_line_args.emplace_back
+                (         
+                server_path
+                );
+            ++arg_idx;
+        }
         else {
             _cmd_line_args.emplace_back
                 (         
-                handle_ffile_prefix_map(compiler_cmd_line_args[arg_idx], _current_working_dir)
+                compiler_cmd_line_args[arg_idx]
                 );
             ++arg_idx;
         }

@@ -34,8 +34,7 @@ struct CmdLineIncludeDirs {
     std::vector<std::string> cnvt_to_cmd_line_args() const {
         std::vector<std::string> cmd_line_args;
         for (const std::string & arg_i : dash_i) {
-            cmd_line_args.emplace_back("-I");
-            cmd_line_args.emplace_back(arg_i);
+            cmd_line_args.emplace_back("-I" + arg_i);
         }
 
         for (const std::string & arg_iquote : dash_iquote) {
