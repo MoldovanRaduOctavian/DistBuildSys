@@ -14,9 +14,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wpedantic -Wshadow")
 
-set(BOOST_ROOT /usr/local)
-set(Boost_NO_SYSTEM_PATHS ON)
-
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost REQUIRED COMPONENTS regex)
 find_package(Boost REQUIRED COMPONENTS filesystem)
@@ -27,8 +24,6 @@ find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
-
-add_link_options(-fuse-ld=lld)
 
 add_executable(distbuild_daemon 
     src/daemon_main.cpp
