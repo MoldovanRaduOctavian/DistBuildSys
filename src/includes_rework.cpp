@@ -388,12 +388,12 @@ bool SourceFileParser::parse_source_file_includes
     )
 {
 
-    std::cout << "BEFORE parse_source_file_includes begins\n";
+    // std::cout << "BEFORE parse_source_file_includes begins\n";
     std::ifstream cpp_source_stream(cpp_abs_path);
     if (!cpp_source_stream.is_open()) {
         return false;
     }
-    std::cout << "AFTER parse_source_file_includes_ began\n";
+    // std::cout << "AFTER parse_source_file_includes_ began\n";
 
     // These are all treated as IncludeDirective angle (#include <...>)
     for (const std::string & cmd_line_inc_directive : cmd_line_includes) {

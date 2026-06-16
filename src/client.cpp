@@ -223,16 +223,22 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         
         // We do not arrive to this point when we request 
         // the same file to be compiled multiple times in parallel
-        std::cout << "BEFORE retrieve_unix_ipc_response()!!!\n";
+        // std::cout << "BEFORE retrieve_unix_ipc_response()!!!\n";
         UnixIpcResponse unix_ipc_response = 
             co_await client_session->retrieve_unix_ipc_response();
         
 
-        std::cout << "THIS IS AFTER retrieve_unix_ipc_response()!!!\n";
+        // std::cout << "THIS IS AFTER retrieve_unix_ipc_response()!!!\n";
         // The compilation session has finished
         // So we should dispose of it
         client_session->send_abort_to_server();
         client_session->terminate_client_session();
+        if (unix_ipc_response.compiler_exit_code != 0) {
+            std::cout << "CMD LINE ARGS FOR THE COMMAND THAT FAILED: \n";
+            for (const auto & arg : ipc_request.cmd_line_args) {
+                std::cout << arg << '\n';
+            }
+        }
         co_return unix_ipc_response;
         
     }

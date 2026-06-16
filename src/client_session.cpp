@@ -93,7 +93,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session
     }
     catch (const std::exception & e) {
         // What do we do in case of an exception?
-        std::cout << "THIS ONLY OCCURS IN handle_client_session\n";
+        // std::cout << "THIS ONLY OCCURS IN handle_client_session\n";
         std::cout << e.what() << '\n';
         // co_await perform_local_compilation();
         // co_await terminate_client_session();
@@ -127,7 +127,7 @@ void ClientSession::terminate_client_session() {
     _terminated = true;    
     // Wait until writing ends     
     _client.remove_client_session(_session_uuid);
-    std::cout << "DO WE ALWAYS GET AT THE END OF terminate_client_session?\n";
+    // std::cout << "DO WE ALWAYS GET AT THE END OF terminate_client_session?\n";
 
 }   /* ClientSession::terminate_client_session() */
 
@@ -453,7 +453,7 @@ boost::asio::awaitable<void> ClientSession::_writer_loop
         }
     }
     catch (std::exception & e) {
-        std::cout << e.what() << '\n';
+        // std::cout << e.what() << '\n';
     }
 
     self->_write_in_progress = false;
