@@ -116,7 +116,14 @@ CompilationOutput CompilerManager::_compile_src
     // std::cout << stdout_oss.str() << '\n';
     
     std::cout << "COMPILATION STDERR: \n";
-    std::cout << stderr_oss.str() << '\n';
+    if (compiler_exit_code != 0) {     
+        std::cout << stderr_oss.str() << '\n';
+        std::cout << "THESE ARE THE ERROR ARGS: \n";
+        for (const auto & arg : compilation_rqst.cmd_line_args) {
+            std::cout << arg << '\n';
+        }
+    }
+
 
     // I have to return something to the server session
     return CompilationOutput{
