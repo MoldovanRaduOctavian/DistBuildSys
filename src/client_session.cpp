@@ -94,7 +94,7 @@ boost::asio::awaitable<void> ClientSession::_handle_client_session
     catch (const std::exception & e) {
         // What do we do in case of an exception?
         // std::cout << "THIS ONLY OCCURS IN handle_client_session\n";
-        std::cout << e.what() << '\n';
+        // std::cout << e.what() << '\n';
         // co_await perform_local_compilation();
         // co_await terminate_client_session();
     }
@@ -116,7 +116,7 @@ void ClientSession::send_abort_to_server() {
 
     }
     catch (const std::exception & e) {
-        std::cout << "Inside send_abort_to_server: " << e.what() << '\n';
+        // std::cout << "Inside send_abort_to_server: " << e.what() << '\n';
     }
 
 }   /* ClientSession::send_abort_to_server() */
@@ -270,7 +270,7 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
         boost::asio::use_awaitable
         );
     
-    std::cout << "ClientSession::start_client_session right after async_connect\n";
+    // std::cout << "ClientSession::start_client_session right after async_connect\n";
     distbuild::ServerMessage session_confirmation_msg;
     send_msg(session_start_rqst); 
     // We fail to receive the session confirmed message ???
@@ -288,8 +288,8 @@ boost::asio::awaitable<bool> ClientSession::start_client_session
                     )
                     );
         
-        std::cout << "CURRENT WORKING DIR: " << _compiler_call.get_current_working_dir() << '\n';
-        std::cout << "OBJ FILE TO BE WRITTEN:" << _obj_file_transfer_state->filename << '\n';
+        // std::cout << "CURRENT WORKING DIR: " << _compiler_call.get_current_working_dir() << '\n';
+        // std::cout << "OBJ FILE TO BE WRITTEN:" << _obj_file_transfer_state->filename << '\n';
 
         const distbuild::ServerSessionConfirmedResponse & session_confirmed =
             session_confirmation_msg.session_confirmed();
