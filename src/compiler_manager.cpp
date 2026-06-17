@@ -84,7 +84,7 @@ CompilationOutput CompilerManager::_compile_src
     
     auto compilation_start_ts = std::chrono::steady_clock::now();
     
-    std::cout << "Compilation current dir: " << compilation_rqst.current_working_dir << '\n'; 
+    // std::cout << "Compilation current dir: " << compilation_rqst.current_working_dir << '\n';
     boost::process::child compiler_process
         (
         compilation_rqst.compiler_name,
@@ -112,7 +112,7 @@ CompilationOutput CompilerManager::_compile_src
     int compiler_exit_code = compiler_process.exit_code();
     
     std::cout << "COMPILER EXIT CODE:" << compiler_exit_code << '\n';
-    std::cout << "COMPILATION STDOUT: \n";
+    // std::cout << "COMPILATION STDOUT: \n";
     // std::cout << stdout_oss.str() << '\n';
     
     std::cout << "COMPILATION STDERR: \n";

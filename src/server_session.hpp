@@ -41,6 +41,7 @@ public:
         _session_socket(std::move(session_socket)),
         _compiler_manager(compiler_manager),
         _terminated(false),
+        _are_args_ready(false),
         _server(server),
         _parent_client_view(parent_client_view),
         _session_uuid(session_uuid),
@@ -97,7 +98,11 @@ public:
     {
         return _current_working_dir;
     }
-     
+    
+    bool get_are_args_ready() const {
+        return _are_args_ready;
+    }
+
     void start_session()
     {
         auto self = shared_from_this();
@@ -158,6 +163,7 @@ private:
     std::deque<std::string>         _write_queue;
     std::atomic<bool>               _write_in_progress;
     std::atomic<bool>               _terminated;
+    std::atomic<bool>               _are_args_ready;
 
     Server *                        _server;
     CompilerManager *               _compiler_manager;

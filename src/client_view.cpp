@@ -212,7 +212,7 @@ void ClientView::add_session
     }
     
     // We should not request a file if it is a usr lib system file
-    std::cout << "requested_files_client_paths size: " << requested_files_client_paths.size() << '\n';
+    // std::cout << "requested_files_client_paths size: " << requested_files_client_paths.size() << '\n';
     new_session.send_msg(session_confirmed_msg);         
     new_session.start_session();   
     try_compile_for_active_sessions();

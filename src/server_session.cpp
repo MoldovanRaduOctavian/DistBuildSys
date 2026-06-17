@@ -150,12 +150,13 @@ void ServerSession::preprocess_compiler_call
 
     _cmd_line_args.insert(_cmd_line_args.end(), {fixed_in_src_file, "-o", _out_obj_file});
 
-#if 0
     std::cout << "\nREAL ARGS: \n";
     for (const auto & cmd_line_arg : _cmd_line_args) {
-        std::cout << cmd_line_arg << "\n";
+        std::cout << cmd_line_arg << " ";
     }
-#endif
+    std::cout << '\n';
+    
+    _are_args_ready = true;
 
 }   /* ServerSession::preprocess_compiler_call() */
 
@@ -166,6 +167,10 @@ void ServerSession::try_request_src_compilation(bool lock_mtx) {
     // THIS CAUSES A DEADLOCK...DANGEROUS SITUATION
     if (lock_mtx) { 
         std::lock_guard<std::mutex> lock(_mtx);
+        if( _are_args_ready == false ) {
+            return;
+        }
+
         for (const FileStateView * required_file : _required_files_state) {
             if (required_file->file_status != FileStateView::Status::FILE_STATUS_AVAILABLE) {
                 // Not all files necessary for compilation have been uploaded
@@ -185,6 +190,10 @@ void ServerSession::try_request_src_compilation(bool lock_mtx) {
 
     }    
     else {
+        if( _are_args_ready == false ) {
+            return;
+        }
+
         for (const FileStateView * required_file : _required_files_state) {
             if (required_file->file_status != FileStateView::Status::FILE_STATUS_AVAILABLE) {
                 // Not all files necessary for compilation have been uploaded
@@ -353,7 +362,7 @@ boost::asio::awaitable<void> ServerSession::handle_server_session
                 
                 case distbuild::ClientMessage::kSessionAbort:
                     // We need to dispose of this session
-                    std::cout << "DO WE ALWAYS RECEIVE kSessionAbort ???\n";
+                    // std::cout << "DO WE ALWAYS RECEIVE kSessionAbort ???\n";
                     self->terminate_server_session();
                     co_return;
                     break;
