@@ -4,6 +4,7 @@
 #include <array>
 #include <chrono>
 #include <optional>
+#include <random>
 #include <unordered_map>
 
 #include <boost/asio.hpp>
@@ -45,18 +46,30 @@ public:
             _start();
         };
     
-    std::optional<ResourceListener::ServerInfo> pick_compilation_server() {
-        std::lock_guard<std::mutex> lock(_mtx);
-        for (auto it=_server_nodes.begin(); it != _server_nodes.end(); it++) {
-            if (it->second.available_jobs > 0) {
-                it->second.available_jobs--;
-                return it->second;
+        std::optional<ResourceListener::ServerInfo> pick_compilation_server()
+        {
+            std::lock_guard<std::mutex> lock(_mtx);
+
+            std::vector<decltype(_server_nodes.begin())> candidates;
+
+            for (auto it = _server_nodes.begin(); it != _server_nodes.end(); ++it) {
+                if (it->second.available_jobs > 0) {
+                    candidates.push_back(it);
+                }
             }
+
+            if (candidates.empty()) {
+                return std::nullopt;
+            }
+
+            static thread_local std::mt19937 rng(std::random_device{}());
+            std::uniform_int_distribution<size_t> dist(0, candidates.size() - 1);
+
+            auto chosen = candidates[dist(rng)];
+
+            chosen->second.available_jobs--;
+            return chosen->second;
         }
-
-        return std::nullopt;
-
-    }
 
 private:
     

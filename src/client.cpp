@@ -213,7 +213,7 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
                 break;
             }
             else {
-                find_sv_retry_timer.expires_after(std::chrono::milliseconds(500));
+                find_sv_retry_timer.expires_after(std::chrono::milliseconds(100));
                 co_await find_sv_retry_timer.async_wait(boost::asio::use_awaitable);
             }
         }
