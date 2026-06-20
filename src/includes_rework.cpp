@@ -490,6 +490,7 @@ bool SourceFileParser::_process_include_directive
                 std::filesystem::path(parent_src_abs_path).parent_path() / include_directive.inc_content
             ).string();
         if (_try_resolve_header(header_absolute_path, include_directive)) {
+            std::cout << "INCLUDE SOLVED WITH PARENT PATH: " << header_absolute_path << '\n';
             return true;
         }
 
@@ -553,8 +554,12 @@ bool SourceFileParser::_try_resolve_header
         return true;
     }
 
-    const IncludeInfo * include_info_ptr = 
-        _includes_cache.get_include_info(header_inc_directive.inc_content);
+    const IncludeInfo * include_info_ptr = [&]() {
+        return _includes_cache.get_include_info(
+              header_inc_directive.inc_type == IncludeDirective::IncludeType::INCLUDE_TYPE_ANGLE ? 
+                header_inc_directive.inc_content : header_abs_path
+        );
+    }(); 
     if (include_info_ptr == nullptr) {
         
         if (std::filesystem::is_directory(header_abs_path)) {
@@ -587,10 +592,19 @@ bool SourceFileParser::_try_resolve_header
         
         bool should_cache = requires_inc_storage(header_abs_path, _system_include_dirs);
         if (should_cache) {
-            _includes_cache.add_include_entry(
-                header_inc_directive.inc_content, 
-                header_abs_path, 
-                header_include_info);
+            if (header_inc_directive.inc_type == IncludeDirective::IncludeType::INCLUDE_TYPE_ANGLE) {
+                _includes_cache.add_include_entry(
+                    header_inc_directive.inc_content, 
+                    header_abs_path, 
+                    header_include_info);
+            }
+            else if (header_inc_directive.inc_type == IncludeDirective::IncludeType::INCLUDE_TYPE_QUOTE) {
+                _includes_cache.add_include_entry(
+                    header_abs_path, 
+                    header_abs_path, 
+                    header_include_info);
+
+            }
         }
          
         _inc_directives[header_abs_path] = std::move(header_include_info);        

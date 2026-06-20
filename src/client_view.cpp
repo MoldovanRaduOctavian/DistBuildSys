@@ -123,6 +123,7 @@ void ClientView::add_session
             if (!file_info.filename().empty()) {
                 FileStateView & new_file_state = 
                     add_file_state(file_info.filename(), file_info.filesize(), file_info.filehash()); 
+                // std::cout << "REQUIRED FILES CLIENT SIDE: " << file_info.filename() << '\n';
                 session_it->second->add_required_file_state(new_file_state);
 
             } 
@@ -156,6 +157,7 @@ void ClientView::add_session
 
     std::vector<std::string> requested_files_client_paths;
     for (const FileStateView * file_info : new_session.get_required_files_state()) {
+        // std::cout << "REQUIRED FILES SERVER SIDE: " << file_info->server_file_path << '\n';
         switch (file_info->file_status) {
             case FileStateView::Status::FILE_STATUS_INITIAL: {
                 FileStateView updated_file_state = *file_info;

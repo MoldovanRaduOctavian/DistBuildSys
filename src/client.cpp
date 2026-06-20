@@ -244,54 +244,6 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
                 std::cout << arg << '\n';
             }
 
-#if 0
-            // Add a failsafe for now
-            boost::process::ipstream stdout_stream;
-            boost::process::ipstream stderr_stream;
-            
-            boost::process::child compiler_process
-                (
-                compiler_type,
-                boost::process::args(cmd_line_args),
-                boost::process::std_out > stdout_stream,
-                boost::process::std_err > stderr_stream,
-                boost::process::start_dir = curr_dir
-                );
-             
-            compiler_process.wait();
-
-            std::ostringstream stdout_oss;
-            stdout_oss << stdout_stream.rdbuf();
-            
-            std::ostringstream stderr_oss;
-            stderr_oss << stderr_stream.rdbuf(); 
-
-            auto compilation_end_ts = std::chrono::steady_clock::now();
-            auto compilation_duration = std::chrono::duration_cast<std::chrono::seconds>
-                (
-                compilation_end_ts - compiler_call->get_call_creation_time()
-                );
-
-            int compiler_exit_code = compiler_process.exit_code();
-            
-            const std::string stdout_str = stdout_oss.str();
-            const std::string stderr_str = stderr_oss.str();
-
-            compiler_call->set_call_duration(compilation_duration);
-            compiler_call->set_exit_code(compiler_exit_code);
-            compiler_call->set_stdout_content(stdout_str);
-            compiler_call->set_stderr_content(stderr_str);
-            
-            co_return UnixIpcResponse{
-                compiler_exit_code,
-                stdout_str,
-                stderr_str
-            };
-
-        }
-
-        co_return unix_ipc_response;
-#endif
         }
 
         co_return unix_ipc_response;

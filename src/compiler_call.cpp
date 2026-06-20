@@ -32,6 +32,7 @@ bool CompilerCall::initialize_compiler_call
          || file_name.ends_with(".hpp")
          || file_name.ends_with(".hh")
          || file_name.ends_with(".inc")
+         || file_name.ends_with(".hxx")
         )
         {
             return true;
