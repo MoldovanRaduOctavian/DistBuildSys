@@ -243,6 +243,47 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
             for (const auto & arg : ipc_request.cmd_line_args) {
                 std::cout << arg << '\n';
             }
+            
+            std::cout << "THIS IS CALLED LOCALLY!\n";
+
+            boost::process::ipstream stdout_stream;
+            boost::process::ipstream stderr_stream;
+             
+            auto line_args = std::vector<std::string>(
+                ipc_request.cmd_line_args.begin() + 1,
+                ipc_request.cmd_line_args.end()
+            );
+            boost::process::child compiler_process
+                (
+                //compiler_call->get_compiler_type(),
+                // boost::process::args(compiler_call->get_cmd_line_args()),
+                ipc_request.cmd_line_args[0],
+                boost::process::args(line_args),
+                boost::process::std_out > stdout_stream,
+                boost::process::std_err > stderr_stream,
+                // boost::process::start_dir = compiler_call->get_current_working_dir() 
+                boost::process::start_dir = ipc_request.current_working_dir
+                );
+             
+            compiler_process.wait();
+
+            std::ostringstream stdout_oss;
+            stdout_oss << stdout_stream.rdbuf();
+            
+            std::ostringstream stderr_oss;
+            stderr_oss << stderr_stream.rdbuf(); 
+
+            int compiler_exit_code = compiler_process.exit_code();
+            
+            const std::string stdout_str = stdout_oss.str();
+            const std::string stderr_str = stderr_oss.str();
+            
+            co_return UnixIpcResponse{
+                compiler_exit_code,
+                stdout_str,
+                stderr_str
+            };
+
 
         }
 
@@ -250,16 +291,25 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
     }
     else {
         /* If the call type is linking or some other kind, then we only compile locally */
+        std::cout << "THIS IS CALLED LOCALLY!\n";
+
         boost::process::ipstream stdout_stream;
         boost::process::ipstream stderr_stream;
-        
+         
+        auto cmd_line_args_1 = std::vector<std::string>(
+            ipc_request.cmd_line_args.begin() + 1,
+            ipc_request.cmd_line_args.end()
+        );
         boost::process::child compiler_process
             (
-            compiler_call->get_compiler_type(),
-            boost::process::args(compiler_call->get_cmd_line_args()),
+            //compiler_call->get_compiler_type(),
+            // boost::process::args(compiler_call->get_cmd_line_args()),
+            ipc_request.cmd_line_args[0],
+            boost::process::args(cmd_line_args_1),
             boost::process::std_out > stdout_stream,
             boost::process::std_err > stderr_stream,
-            boost::process::start_dir = compiler_call->get_current_working_dir() 
+            // boost::process::start_dir = compiler_call->get_current_working_dir() 
+            boost::process::start_dir = ipc_request.current_working_dir
             );
          
         compiler_process.wait();
