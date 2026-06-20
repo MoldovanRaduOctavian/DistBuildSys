@@ -365,10 +365,12 @@ bool SourceFileParser::_try_resolve_header
                                                     /* resolved header include directive  */
     )
 {
+#if 0
     if (_includes_cache.is_src_nonexistent(header_abs_path)) {
         // std::cout << "SOURCE FILE NON-EXISTENT: " << header_abs_path << '\n';
         return false;
     }
+#endif
 
     if (_inc_directives.contains(header_abs_path)) {
         return true;
@@ -389,9 +391,11 @@ bool SourceFileParser::_try_resolve_header
 
         std::ifstream header_file_stream(header_abs_path);
         if (!header_file_stream.is_open()) {
+#if 0
             if (header_abs_path.find("autogen") == std::string::npos) {     
                 _includes_cache.mark_src_nonexistent(header_abs_path);
             }
+#endif
             return false;
         }
 
