@@ -50,11 +50,11 @@ public:
         // _compiler_name(session_start_rqst.client_compiler())
         _compiler_name(YamlConfig::instance().compiler_bin)
     {
-        std::cout << "THIS IS THE COMPILER: " << _compiler_name << '\n'; 
+        // std::cout << "THIS IS THE COMPILER: " << _compiler_name << '\n'; 
     };
     
     ~ServerSession() {
-        std::cout << "SERVER SESSION DESTROYED: " << _session_uuid << '\n';
+        // std::cout << "SERVER SESSION DESTROYED: " << _session_uuid << '\n';
         try { 
             boost::system::error_code ec;
             _session_socket.cancel();

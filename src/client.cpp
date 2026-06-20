@@ -127,7 +127,7 @@ boost::asio::awaitable<ClientSession *> Client::connect_to_server
             std::move(compiler_call)
             );
 
-        std::cout << "INSIDE Client::connecto_to_server !!!\n";
+        // std::cout << "INSIDE Client::connecto_to_server !!!\n";
         co_return _client_sessions[boost::uuids::to_string(session_uuid)].get();
     }
     else {
@@ -239,11 +239,13 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         client_session->send_abort_to_server();
         client_session->terminate_client_session();
         if (unix_ipc_response.compiler_exit_code != 0) {
+#if 0
             std::cout << "CMD LINE ARGS FOR THE COMMAND THAT FAILED: \n";
             for (const auto & arg : ipc_request.cmd_line_args) {
                 std::cout << arg << '\n';
             }
-            
+#endif
+
             std::cout << "THIS IS CALLED LOCALLY!\n";
 
             boost::process::ipstream stdout_stream;

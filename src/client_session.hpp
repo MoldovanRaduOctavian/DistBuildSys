@@ -64,7 +64,7 @@ public:
     {};
     
     ~ClientSession() {
-        std::cout << "ClientSession " << boost::uuids::to_string(_session_uuid) << " WAS DESTROYED\n";
+        // std::cout << "ClientSession " << boost::uuids::to_string(_session_uuid) << " WAS DESTROYED\n";
 
         try {
                 

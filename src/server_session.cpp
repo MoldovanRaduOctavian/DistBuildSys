@@ -150,12 +150,14 @@ void ServerSession::preprocess_compiler_call
 
     _cmd_line_args.insert(_cmd_line_args.end(), {fixed_in_src_file, "-o", _out_obj_file});
 
+#if 0
     std::cout << "\nREAL ARGS: \n";
     for (const auto & cmd_line_arg : _cmd_line_args) {
         std::cout << cmd_line_arg << " ";
     }
     std::cout << '\n';
-    
+#endif
+
     _are_args_ready = true;
 
 }   /* ServerSession::preprocess_compiler_call() */
@@ -323,7 +325,7 @@ boost::asio::awaitable<void> ServerSession::handle_server_session
 {
     try {
         // send_msg(*session_confirmed_msg);         
-        std::cout << "A NEW SESSION HAS STARTED\n";
+        // std::cout << "A NEW SESSION HAS STARTED\n";
         while (!self->_terminated) {
             //receive and handle all types of packets from the client
             distbuild::ClientMessage client_message;
