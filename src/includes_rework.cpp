@@ -388,12 +388,16 @@ bool SourceFileParser::parse_source_file_includes
     )
 {
 
-    // std::cout << "BEFORE parse_source_file_includes begins\n";
+    std::cout << "BEFORE parse_source_file_includes begins\n";
+    if (std::filesystem::is_directory(cpp_abs_path)) {
+        std::cout << "THIS IS A DIRECTORY, NOT A FILE:" << cpp_abs_path << "\n";
+    }
+
     std::ifstream cpp_source_stream(cpp_abs_path);
     if (!cpp_source_stream.is_open()) {
         return false;
     }
-    // std::cout << "AFTER parse_source_file_includes_ began\n";
+    std::cout << "AFTER parse_source_file_includes_ began\n";
 
     // These are all treated as IncludeDirective angle (#include <...>)
     for (const std::string & cmd_line_inc_directive : cmd_line_includes) {
@@ -511,6 +515,10 @@ bool SourceFileParser::_process_include_directive
         if (_try_resolve_header(header_absolute_path, include_directive)) {
             return true;
         }
+        else {
+            // std::cout << "Header absolute path: " << header_absolute_path << '\n';
+            // std::cout << "Include directive: " << include_directive.inc_content << '\n';
+        }
     }    
 
     for (const std::string & dash_isystem_dir : _system_include_dirs.dash_isystem) {
@@ -549,6 +557,11 @@ bool SourceFileParser::_try_resolve_header
         _includes_cache.get_include_info(header_inc_directive.inc_content);
     if (include_info_ptr == nullptr) {
         
+        if (std::filesystem::is_directory(header_abs_path)) {
+            std::cout << "THIS IS A DIRECTORY, NOT A FILE:" << header_abs_path << "\n";
+            return false;
+        }
+
         std::ifstream header_file_stream(header_abs_path);
         if (!header_file_stream.is_open()) {
             _includes_cache.mark_src_nonexistent(header_abs_path);

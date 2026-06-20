@@ -244,6 +244,7 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
                 std::cout << arg << '\n';
             }
 
+#if 0
             // Add a failsafe for now
             boost::process::ipstream stdout_stream;
             boost::process::ipstream stderr_stream;
@@ -290,7 +291,10 @@ boost::asio::awaitable<UnixIpcResponse> Client::_handle_ipc_request
         }
 
         co_return unix_ipc_response;
-        
+#endif
+        }
+
+        co_return unix_ipc_response;
     }
     else {
         /* If the call type is linking or some other kind, then we only compile locally */
