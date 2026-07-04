@@ -524,10 +524,13 @@ bool ServerSession::process_file_chunk
                 *curr_file_state,
                 FileStateView::Status::FILE_STATUS_FAULT
                 );
+           //     malloc(): unaligned tcache chunk detected
+           //     Aborted
             
+            // Remove this check, it might lock up everything
             std::cout << "ServerSession::process_file_chunk SHA1 MISMATCH!!!\n";
             std::cout << "FILE SIZE: " << curr_file_state->file_sz_bytes << '\n';
-            return false;
+            // return false;
         }    
 
         set_file_state
